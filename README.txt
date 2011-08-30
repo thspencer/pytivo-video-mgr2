@@ -24,12 +24,18 @@ improvements that will be visible to users:
 	    builds my cache containing ~400 videos, including the meta data indexes I mentioned above, in less
 	    than 5 seconds.
 	    
-    2.) the user interface was cleaned up - there is no longer a menu choice for push/delete.  Pushing is
+	2.) You now have the ability to change options on a directory by directory basis.  You want this
+	    directory sorted on episode number and that one sorted on show title - no problem.
+	    
+    3.) the user interface was cleaned up - there is no longer a menu choice for push/delete.  Pushing is
         accomplished by pressing the select button - if you have multiple tivos a dialog box will pop-up
         over the display so you can choose the proper target.  Delete is accomplished by pressing clear.  
         Again, a dialog box will pop-up asking for confirmation.
         
 There are many other changes as well, but they are more subtle and/or are not visible to a user.
+
+There is one limitation over the original program - This is for HD only.  If the application finds that
+your tivo does not support an HD resolution, it simply exist.
 
 vidmgr is a TiVo HME application designed to operate under wmcbrine's hme for python
 framework.  It is NOT a stand-alone application.  Please install the pyhme package (I have tested with version 0.19)
@@ -179,6 +185,21 @@ you are running pytivo in a linux environment (where the separator is a forward 
 you need to specify "pytivox.sep=/".  Otherwise, vidmgr will happily send its requests to 
 pytivo using a backslash in the paths and this will cause pytivo to choke.
 
+You can provide local configuration files to change behavior for a particular directory and its complete
+subtree.  In any of your share directories, you can create a file names ".vidmgr.ini" and put local changes
+into it.  These changes will override the config.ini file in that directory and in all subdirectories
+below that point.  You can only do this with a subset of configuration parameters:
+
+	deleteallowed		changes whether delete are allowed in this directory.  For example, I have
+						deleteallowed = false everywhere, but I have it set to true in my podcasts 
+						directory - otherwise these directories quickly become cluttered
+						
+	sort				change the algorithm for constructing sort keys for this directory.  For
+						episodic shows you might want to sort on episode number (epnum) and for
+						non-episodic shows, you might want to sort on title (normal)
+						
+	display				change the algorithm for constructing test that is displayed on the TV
+	
 =======================================================================================================
 
 Usage
