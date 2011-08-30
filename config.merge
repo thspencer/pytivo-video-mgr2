@@ -1,0 +1,23 @@
+[hmeserver]
+apps=vidmgr
+
+[vidmgr]
+exts=.mpg .mp4 .avi .wmv .m4v
+display=episodenumtitle
+sort=file
+deleteallowed=false
+skin=blue
+metaspace=description title
+infolabelpercent=10
+
+[tivos]
+tivo1.name=Family Room
+tivo1.tsn=xxxxxxxxx
+tivo2.name=Master Bedroom
+tivo2.tsn=xxxxxxxxx
+
+[pytivos]
+pytivo1.config=<path to pytivo conf file>
+pytivo1.ip=192.168.1.201
+pytivo1.port=9032
+pytivo1.sep=/
