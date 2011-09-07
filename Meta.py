@@ -18,12 +18,12 @@ class MetaList:
 		return self.name
 
 	def addVideo(self, vf):
-		nt = vf.getTitle()
-		np = vf.getPath()
-		for v in self.vlist:
-			if nt == v.getTitle() and np == v.getPath():
-				print "Title <%s> is a duplicate for metalist <%s>" % (nt, self.name)
-				return
+		nid = vf.getFileID()
+		if nid != None:
+			for v in self.vlist:
+				if nid == v.getFileID():
+					print "Title <%s> is a duplicate for metalist <%s>" % (vf.getTitle(), self.name)
+					return
 			
 		self.vlist.append(vf)
 		vf.addMetaRef(self)
@@ -42,7 +42,7 @@ class MetaList:
 			ta = a.getSortText()
 			tb = b.getSortText()
 			return cmp(ta, tb)
-		
+
 		s = sorted(self.vlist, cmpNodes)
 		self.vlist = s
 
@@ -117,7 +117,7 @@ class MetaHarvester:
 			
 		return l
 	
-	def sort(self):					
+	def sort(self):
 		self.mkeys = sorted(self.mlist.keys())
 		for mk in self.mkeys:
 			self.mlist[mk].sort()

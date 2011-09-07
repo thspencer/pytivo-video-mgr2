@@ -48,7 +48,7 @@ class DVDDir:
 		
 	def addVideo(self, v):
 		self.videoList.append(v)	
-		v.setVideoDir(self)
+		v.addVideoRef(self)
 				
 	def delVideo(self, vf):
 		return

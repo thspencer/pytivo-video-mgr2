@@ -44,6 +44,11 @@ class ListDisplayManager:
 								xpos=listXCue, parent=self.vwList)
 		self.vwListCueBot = View(self.app, height=32, width=32, ypos=listYStart+listHeight*listViewSize,
 								xpos=listXCue, parent=self.vwList)
+	def ReInit(self):
+		self.stack = []
+		self.listOffset = 0
+		self.Selection = 0
+		self.node = None
 		
 	def Descend(self, node):
 		self.stack.append([self.node, self.listOffset, self.listSelection])

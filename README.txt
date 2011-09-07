@@ -35,7 +35,9 @@ improvements that will be visible to users:
 There are many other changes as well, but they are more subtle and/or are not visible to a user.
 
 There is one limitation over the original program - This is for HD only.  If the application finds that
-your tivo does not support an HD resolution, it simply exist.
+your tivo does not support an HD resolution, it simply exits.  One implication of this - if you plan on 
+retaining any of your HD files from the previous version of Vidmgr, then the "HD" needs to be removed
+from the file name.
 
 vidmgr is a TiVo HME application designed to operate under wmcbrine's hme for python
 framework.  It is NOT a stand-alone application.  Please install the pyhme package (I have tested with version 0.19)
@@ -260,6 +262,10 @@ If the cache if built ahead of time, it will be written back to disk at program 
 means if you have deleted a video, since this is the only change possible through the HME interface.  If you build 
 your cache ahead of time, your are responsible for keeping it up to date as you add/delete videos.  This is the way
 mine is configured, and I rebuild my cache each night through a cron job.
+
+As a convenience, you can also trigger a rebuild of the cache with the remote control by hitting Thumbs-Up three
+times in succession.  The app will be non-responsive while the cache is rebuilding.  After it is done, it will
+restart at the top of the tree.
 
 There are options you can specify for building the cache.  These are specified in the "buildcache.ini" file in the
 vidmgr directory.  Here is an example buildcache.ini file:

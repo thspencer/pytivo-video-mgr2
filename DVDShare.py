@@ -1,6 +1,7 @@
 from VideoFile import VideoFile
 from VideoDir import VideoDir
 from DVDDir import DVDDir
+from FileID import fileId
 import Config
 import os
 import metadata
@@ -9,7 +10,7 @@ import re
 regex = re.compile(r'Title\s*(\d+)')
 
 class DVDShare:
-	def __init__(self, opts, name, root, harvesters):
+	def __init__(self, opts, name, root, vidlist, harvesters):
 		self.name = name
 		self.title = name
 		self.opts = opts.copy()
@@ -35,19 +36,29 @@ class DVDShare:
 			if self.isDvdDir(path):
 				p, deftitle = os.path.split(path)
 				meta, titles = self.loadDvdMeta(path, lopts, "default", deftitle, False)
-				for (title, file) in titles:
-					meta, t = self.loadDvdMeta(path, lopts, file, title, True)
-					meta['title'] = title
-					vf = VideoFile(lopts, path, file)
-					vf.setMeta(meta)
+				fid = fileId(os.path.join(path, "default.txt"))
+				for (title, file, tn) in titles:
+					if fid != None:		
+						vf = vidlist.findVideo((fid, tn))
+					else:
+						vf = None
+						
+					if vf == None:
+						vf = VideoFile(lopts, path, file, (fid, tn))
+						vidlist.addVideo(vf)
+
+						meta, t = self.loadDvdMeta(path, lopts, file, title, True)
+						meta['title'] = title
+						vf.setMeta(meta)
+
+						for h in harvesters:
+							h.harvest(vf)
+
 					vdir.addVideo(vf)
 					self.count += 1
-					for h in harvesters:
-						h.harvest(vf)
 			else:
 				for dir in dirs:
 					if dir.startswith("."): continue
-
 
 					cdir = os.path.join(path, dir)
 					if self.isDvdDir(cdir):
@@ -71,12 +82,12 @@ class DVDShare:
 					sharedirs[os.path.join(rpath, dir)] = d
 					shareopts[os.path.join(rpath, dir)] = lopts.copy()
 			vdir.sort()
-			
+
 	def isDvdDir(self, dir):
 		dvddir = os.path.join(dir, "VIDEO_TS")
 		return os.path.isdir(dvddir)
 
-	def loadDvdMeta(self, opts, metadir, basefn, deftitle, singleDVDtitle):
+	def loadDvdMeta(self, metadir, opts, basefn, deftitle, singleDVDtitle):
 		metapath = os.path.join(metadir, basefn)
 		meta = metadata.from_text(metapath, opts['metamergefiles'], opts['metamergelines'])
 		if (not 'title' in meta) or (meta['title'] == basefn):
@@ -92,13 +103,13 @@ class DVDShare:
 					del(meta[k])
 				else:
 					filename = "__T%02d.mpg" % tn
-					titles.append((meta[k], filename))
+					titles.append((meta[k], filename, tn))
 
 					if (singleDVDtitle):
 						del(meta[k])
 
 		if len(titles) == 0:
-			titles.append((meta['title'], "__T00.mpg"))
+			titles.append((meta['title'], "__T00.mpg", 0))
 			
 		return (meta, titles)
 

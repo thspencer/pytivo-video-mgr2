@@ -51,6 +51,7 @@ MYKEY_PUSHCOMPLETE = 1
 MYKEY_DELETECONFIRM = 10
 MYKEY_DELETECOMPLETE = 11
 MYKEY_DELETECANCEL = 12
+MYKEY_REBUILDCACHE = 20
 
 SHARETYPE_VIDEO = 0
 SHARETYPE_DVD = 1
@@ -73,7 +74,7 @@ def load(cfg):
 			'skin' : None,
 			'deleteallowed' : True,
 			'thumbjustify' : RSRC_HALIGN_LEFT,
-			'distopt' : DISP_NORMAL,
+			'dispopt' : DISP_NORMAL,
 			'sortopt' : SORT_NORMAL
 			}
 

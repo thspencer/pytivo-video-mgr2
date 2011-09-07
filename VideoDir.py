@@ -48,14 +48,11 @@ class VideoDir:
 		
 	def addVideo(self, v):
 		self.videoList.append(v)	
-		v.setVideoDir(self)
+		v.addVideoRef(self)
 				
 	def delVideo(self, vf):
-		nt = vf.getTitle()
-		np = vf.getPath()
 		for i in range(len(self.videoList)):
-			v = self.videoList[i]
-			if nt == v.getTitle() and np == v.getPath():
+			if vf == self.videoList[i]:
 				del self.videoList[i]
 				return
 			

@@ -10,7 +10,7 @@ from string import maketrans
 from ThumbCache import ThumbCache
 import Config
 from Config import ( screenWidth, screenHeight, titleYPos, subTitleYPos, 
-		MYKEY_PUSHCOMPLETE, MYKEY_DELETECONFIRM, MYKEY_DELETECOMPLETE, MYKEY_DELETECANCEL,
+		MYKEY_PUSHCOMPLETE, MYKEY_DELETECONFIRM, MYKEY_DELETECOMPLETE, MYKEY_DELETECANCEL, MYKEY_REBUILDCACHE,
 		infoWidth, infoHeight, thumbnailheight, thumbnailwidth, thumbcachesize, ConfigError )
 
 from ListDisplayManager import ListDisplayManager
@@ -122,33 +122,41 @@ class Vidmgr(Application):
 	def handle_active(self):
 		self.myimages = Images(self)
 		self.myfonts = Fonts(self)
+		self.tdcount = 0
 
+		self.push = None
+		self.msgbox = None
+		self.rebuildingCache = False
+		
 		self.vc = VideoCache(self.opts, self.context.server.config)
+		
+		self.root.set_resource(self.myimages.Background)
+		self.TitleView = View(self, height=30, width=screenWidth, ypos=titleYPos)
+		self.SubTitleView= View(self, height=20, width=screenWidth, ypos=subTitleYPos)
+		
+		self.ldm = ListDisplayManager(self, self.opts)
+		self.ddm = DetailDisplayManager(self, self.opts, tc)
+		self.vwInfo = InfoView(self, self.opts, self.myfonts.infofont)
+		self.subMenu = SubMenu(self, self.opts)
+
+		self.start()
+
+	def reStart(self):
+		self.ldm.ReInit()
+		self.start()
+		
+	def start(self):
 		self.rootNode = self.vc.load()
 		if self.rootNode == None:
 			raise ConfigError("No video cache - exiting")
 
 		self.vcChanged = False
 
-		self.push = None
-		self.msgbox = None
-		
-		self.currentNode = self.rootNode	
-		
-		self.root.set_resource(self.myimages.Background)
-		self.TitleView = View(self, height=30, width=screenWidth, ypos=titleYPos)
-		self.SubTitleView= View(self, height=20, width=screenWidth, ypos=subTitleYPos)
 		self.TitleView.set_text(TITLE, font=self.myfonts.fnt30, colornum=0xffffff, flags=RSRC_VALIGN_BOTTOM)
-		self.SubTitleView.set_text(self.currentNode.getFullTitle(), font=self.app.myfonts.fnt20, colornum=0xffffff, flags=RSRC_VALIGN_BOTTOM)
-		
-		self.ldm = ListDisplayManager(self, self.opts)
+		self.SubTitleView.set_text(self.rootNode.getFullTitle(), font=self.app.myfonts.fnt20, colornum=0xffffff, flags=RSRC_VALIGN_BOTTOM)
+
 		self.currentNode, self.currentItem = self.ldm.Descend(self.rootNode)
-		
-		self.ddm = DetailDisplayManager(self, self.opts, tc)
 		self.ddm.show(self.currentItem)
-		
-		self.vwInfo = InfoView(self, self.opts, self.myfonts.infofont)
-		self.subMenu = SubMenu(self, self.opts)
 		
 		if self.currentNode == None:
 			self.active = False
@@ -160,6 +168,31 @@ class Vidmgr(Application):
 			self.vwInfo.setinfogeometry(font)
 			
 	def handle_key_press(self, keynum, rawcode):
+		if keynum == KEY_THUMBSDOWN:
+			self.tdcount += 1
+			if self.tdcount == 3:
+				self.mb = MessageBox(self.app, "Rebuilding Cache...",
+					"Please Wait",
+					'alert',
+					[[[KEY_TIVO], 0]])
+
+				self.send_key(KEY_TIVO, MYKEY_REBUILDCACHE)
+				self.rebuildingCache = True
+				return
+
+			self.sound('thumbsup')
+			return
+		else:
+			self.tdcount = 0
+			
+		if keynum == KEY_TIVO and rawcode == MYKEY_REBUILDCACHE:
+			self.vc.build()
+			self.vc.save()
+
+			self.mb.close()
+			self.reStart()
+			return
+
 		if self.msgbox:
 			self.msgbox.handlekeypress(keynum, rawcode)
 			

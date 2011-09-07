@@ -8,9 +8,10 @@ from VideoDir import VideoDir
 import Config
 import os
 import metadata
+from FileID import fileId
 
 class VideoShare:
-	def __init__(self, opts, name, root, harvesters):
+	def __init__(self, opts, name, root, vidlist, harvesters):
 		self.name = name
 		self.title = name
 		self.opts = opts.copy()
@@ -44,18 +45,29 @@ class VideoShare:
 			
 			for name in files:
 				if name.startswith("."): continue
-				if os.path.splitext(name)[1].lower() in lopts['goodexts']:		
-					meta = metadata.from_text(os.path.join(path, name),
-											lopts['metamergefiles'],
-											lopts['metamergelines'])
-					if not 'title' in meta:
-						meta = metadata.basic(os.path.join(path, name))
-					vf = VideoFile(lopts, path, name)
-					vf.setMeta(meta)
+				if os.path.splitext(name)[1].lower() in lopts['goodexts']:
+					fid = fileId(os.path.join(path, name))
+					if fid != None:		
+						vf = vidlist.findVideo(fid)
+					else:
+						vf = None
+						
+					if vf == None:
+						vf = VideoFile(lopts, path, name, fid)
+						vidlist.addVideo(vf)
+
+						meta = metadata.from_text(os.path.join(path, name),
+												lopts['metamergefiles'],
+												lopts['metamergelines'])
+						if not 'title' in meta:
+							meta = metadata.basic(os.path.join(path, name))
+						vf.setMeta(meta)
+
+						for h in harvesters:
+							h.harvest(vf)
+
 					vl.addVideo(vf)
 					self.count += 1
-					for h in harvesters:
-						h.harvest(vf)
 			vl.sort()
 						
 
