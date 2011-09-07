@@ -139,6 +139,9 @@ class Vidmgr(Application):
 		self.vwInfo = InfoView(self, self.opts, self.myfonts.infofont)
 		self.subMenu = SubMenu(self, self.opts)
 
+		self.rootNode = self.vc.load()
+		self.vcChanged = False
+
 		self.start()
 
 	def reStart(self):
@@ -146,11 +149,8 @@ class Vidmgr(Application):
 		self.start()
 		
 	def start(self):
-		self.rootNode = self.vc.load()
 		if self.rootNode == None:
 			raise ConfigError("No video cache - exiting")
-
-		self.vcChanged = False
 
 		self.TitleView.set_text(TITLE, font=self.myfonts.fnt30, colornum=0xffffff, flags=RSRC_VALIGN_BOTTOM)
 		self.SubTitleView.set_text(self.rootNode.getFullTitle(), font=self.app.myfonts.fnt20, colornum=0xffffff, flags=RSRC_VALIGN_BOTTOM)
@@ -186,8 +186,8 @@ class Vidmgr(Application):
 			self.tdcount = 0
 			
 		if keynum == KEY_TIVO and rawcode == MYKEY_REBUILDCACHE:
-			self.vc.build()
-			self.vc.save()
+			self.rootNode = self.vc.build()
+			self.vcChanged = True
 
 			self.mb.close()
 			self.reStart()

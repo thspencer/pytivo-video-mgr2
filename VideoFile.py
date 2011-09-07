@@ -5,6 +5,7 @@ import os
 from Config import DISP_NORMAL, DISP_FILE, DISP_EPTITLE, DISP_EPNUMTITLE, SORT_NORMAL, SORT_FILE, SORT_EPNUM
 
 from DVDDir import DVDDir
+from Meta import MetaList
 
 class VideoFile:
 	def __init__(self, opts, dir, fn, fid):
@@ -17,6 +18,22 @@ class VideoFile:
 		self.vRef = []
 		self.meta = {}
 		self.metaRef = []
+		self.index = None
+	
+	def flatten(self, index):
+		self.index = index
+		self.vRef = []
+		self.metaRef = []
+
+	def unflatten(self, node):
+		self.index = None
+		if isinstance(node, MetaList):
+			self.metaRef.append(node)
+		else:
+			self.vRef.append(node)
+
+	def getIndex(self):
+		return self.index
 
 	def addVideoRef(self, dir):
 		self.vRef.append(dir)

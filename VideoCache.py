@@ -1,3 +1,4 @@
+version = 1
 '''
 Created on Aug 3, 2011
 
@@ -6,7 +7,9 @@ Created on Aug 3, 2011
 from VideoShare import VideoShare
 from DVDShare import DVDShare
 from VideoFile import VideoFile
-from Meta import MetaHarvester
+from VideoDir import VideoDir
+from DVDDir import DVDDir
+from Meta import MetaHarvester, MetaList
 import ConfigParser
 import cPickle as pickle
 from Node import Node
@@ -19,6 +22,84 @@ CACHEFILE = "video.cache"
 OPTSECT = 'options'
 BUILDINI = 'buildcache.ini'
 NESTLIMIT = 10000
+
+def flatten(node, vfl):
+	if isinstance(node, Node):
+		for v in node.vlist:
+			flatten(v, vfl)
+
+	elif isinstance(node, DVDShare) or isinstance(node, VideoShare):
+		flatten(node.vlist, vfl)
+
+	elif isinstance(node, VideoDir):
+		nvl = []
+		for v in node.videoList:
+			nvl.append(flattenVF(v, vfl))
+		node.videoList = nvl
+		for v in node.dirList:
+			flatten(v, vfl)
+	
+	elif isinstance(node, DVDDir):
+		nvl = []
+		for v in node.videoList:
+			nvl.append(flattenVF(v, vfl))
+		node.videoList = nvl
+
+	elif isinstance(node, MetaList):
+		nvl = []
+		for v in node.vlist:
+			nvl.append(flattenVF(v, vfl))
+		node.vlist = nvl
+
+	else:
+		print "Encountered unknown object type while flattening"
+
+def flattenVF(vf, vfl):
+	index = vf.getIndex()
+
+	if index == None:
+		index = len(vfl)
+		vfl.append(vf)
+		vf.flatten(index)
+
+	return index
+
+def unflatten(node, vfl):
+	if isinstance(node, Node):
+		for v in node.vlist:
+			unflatten(v, vfl)
+
+	elif isinstance(node, DVDShare) or isinstance(node, VideoShare):
+		unflatten(node.vlist, vfl)
+
+	elif isinstance(node, VideoDir):
+		nvl = []
+		for vx in node.videoList:
+			nvl.append(unflattenVF(vx, vfl, node))
+		node.videoList = nvl
+		for v in node.dirList:
+			unflatten(v, vfl)
+	
+	elif isinstance(node, DVDDir):
+		nvl = []
+		for vx in node.videoList:
+			nvl.append(unflattenVF(vx, vfl, node))
+		node.videoList = nvl
+
+	elif isinstance(node, MetaList):
+		nvl = []
+		for vx in node.vlist:
+			nvl.append(unflattenVF(vx, vfl, node))
+		node.vlist = nvl
+
+	else:
+		print "Encountered unknown object type while unflattening"
+
+def unflattenVF(vx, vfl, node):
+	vf = vfl[vx]
+	vf.unflatten(node)
+
+	return vf
 
 class VideoList:
 	def __init__(self):
@@ -56,8 +137,14 @@ class VideoCache:
 		self.vidlist = VideoList()
 		p = os.path.dirname(__file__)
 		self.filename = os.path.join(p, CACHEFILE)
-
+		
 	def load(self):
+		if version == 1:
+			self.load1()
+		else:
+			self.load2()
+
+	def load1(self):
 		self.cache = None
 
 		try:
@@ -70,6 +157,31 @@ class VideoCache:
 			try:
 				sys.setrecursionlimit(NESTLIMIT)
 				self.cache = pickle.load(f)
+				self.built = False
+			except:
+				print "Error loading video cache - trying to build..."
+				self.build()
+				self.built = True
+		
+			f.close()
+
+			
+		return self.cache
+
+	def load2(self):
+		self.cache = None
+
+		try:
+			f = open(self.filename)
+		except:
+			print "Video Cache does not exist - attempting to build..."
+			self.build()
+			self.built = True
+		else:
+			try:
+				sys.setrecursionlimit(NESTLIMIT)
+				self.cache, vfl = pickle.load(f)
+				unflatten(self.cache, vfl)
 				self.built = False
 			except:
 				print "Error loading video cache - trying to build..."
@@ -184,8 +296,14 @@ class VideoCache:
 		self.cache = root
 
 		return root
-
+	
 	def save(self, force=False):
+		if version == 1:
+			self.save1(force)
+		else:
+			self.save2(force)
+
+	def save1(self, force=False):
 		if not force and self.built:
 			print "Video cache not being saved because it was built dynamically on entry"
 			return
@@ -203,71 +321,21 @@ class VideoCache:
 			else:
 				f.close()
 
-	def save2(self):
-		f = open(self.filename, 'w')
-		self.saveNode(self.cache, f)
-		f.close();
+	def save2(self, force=False):
+		if not force and self.built:
+			print "Video cache not being saved because it was built dynamically on entry"
+			return
 
-	def saveNode(self, node, f):
-		f.write("Node { name=%s" % node.getTitle)
-
-		for vn in node:
-			if isinstance(Node, vn):
-				self.saveNode(vn, f)
-			elif isinstance(VideoShare, vn):
-				self.saveVideoShare(vn, f)
-			elif isinstance(DVDShare, vn):
-				self.saveDVDShare(vn, f)
+		try:
+			f = open(self.filename, 'w')
+		except:
+			print "Error opening video cache file for write"
+		else:
+			try:
+				vfl = []
+				flatten(self.cache, vfl)
+				pickle.dump((self.cache, vfl), f)
+			except:
+				print "Error saving video cache"
 			else:
-				print "Unknown object in Node object"
-
-		f.write("}")
-
-	def saveVideoShare(self, shr, f):
-		f.write("VideoShare{ name=%s title=%s count=%d root=%s"
-				% (shr.name, shr.title, shr.count, shr.root))
-		self.saveOpts(shr.opts, f)
-		vl = shr.getVList()
-		self.saveVideoDir(vl[0])
-		f.write("}")
-
-	def saveVideoDir(self, vdir, f):
-		f.write("VideoDir{ name=%s share=??? path=%s apath=%s title=%s sorttext=%s" % (vdir.name, vdir.path, vdir.apath, vdir.title, vdir.sorttext))
-		self.saveOpts(vdir.opts, f)
-		self.saveMeta(vdir.meta, f)
-		for d in vdir.dirList:
-			self.saveVideoDir(d, f)
-
-		for v in vdir.videoList:
-			self.saveVideoFile(v, f)
-		f.write("}")
-
-	def saveVideoFile(self, vf, f):
-		pass
-
-	def saveDVDShare(self, shr, f):
-		f.write("DVDShare{ name=%s title=%s count=%d root=%s"
-				% (shr.name, shr.title, shr.count, shr.root))
-		self.saveOpts(shr.opts, f)
-		vl = shr.getVList()
-		self.saveDVDDir(vl[0])
-		f.write("}")
-	
-	def saveDVDDir(self, vdir, f):
-		f.write("DVDDir{ name=%s share=??? path=%s apath=%s title=%s sorrttxt=%s" % (vdir.name, vdir.path, vdir.apath, vdir.title, vdir.sorttext))
-		self.saveOpts(vdir.opts, f)
-		self.saveMeta(vdir.meta, f)
-		for d in vdir.dirList:
-			self.saveVideoDir(d, f)
-			self.saveDVDDir(d, f)
-
-		for v in vdir.videoList:
-			self.saveVideoFile(v, f)
-		f.write("}")
-
-	def saveOpts(self, opts, f):
-		pass
-
-	def saveMeta(self, meta, f):
-		pass
-
+				f.close()
