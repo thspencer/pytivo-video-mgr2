@@ -2,7 +2,7 @@
 Created on Aug 3, 2011
 '''
 import os
-from Config import DISP_NORMAL, DISP_FILE, DISP_EPTITLE, DISP_EPNUMTITLE, SORT_NORMAL, SORT_FILE, SORT_EPNUM
+from Config import DISP_NORMAL, DISP_FILE, DISP_EPTITLE, DISP_EPNUMTITLE, SORT_NORMAL, SORT_DISPLAY, SORT_FILE, SORT_EPNUM
 
 from DVDDir import DVDDir
 from Meta import MetaList
@@ -134,6 +134,8 @@ class VideoFile:
 		opt = self.opts['sortopt']
 		if opt == SORT_FILE:
 			self.setSortText(self.getFileName())
+		elif opt == SORT_DISPLAY:
+			self.setSortText(self.getTitle())
 		else:
 			usedEpisodeNum = False
 			if opt == SORT_EPNUM:

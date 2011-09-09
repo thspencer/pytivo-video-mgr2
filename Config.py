@@ -45,6 +45,7 @@ DISP_EPNUMTITLE = 3
 SORT_NORMAL = 0
 SORT_FILE = 1
 SORT_EPNUM = 2
+SORT_DISPLAY = 3
 
 MYKEY_PUSHRESUME = 0
 MYKEY_PUSHCOMPLETE = 1
@@ -158,8 +159,10 @@ def load(cfg):
 					opts['sortopt'] = SORT_FILE
 				elif (lval == 'normal'):
 					opts['sortopt'] = SORT_NORMAL
+				elif (lval == 'display'):
+					opts['sortopt'] = SORT_DISPLAY
 				else:
-					raise ConfigError("Config error - Invalid sort option (episodenumber, file, normal)")
+					raise ConfigError("Config error - Invalid sort option (episodenumber, file, display, normal)")
 
 			else:
 				raise ConfigError("Config error - unknown option (%s)" % opt)
@@ -205,6 +208,8 @@ def addLocalOpts(opts, root, path):
 					opts['sortopt'] = SORT_FILE
 				elif (lval == 'normal'):
 					opts['sortopt'] = SORT_NORMAL
+				elif (lval == 'display'):
+					opts['sortopt'] = SORT_DISPLAY
 				else:
 					print "Invalid value for sort in %s" % cfgfn
 			else:

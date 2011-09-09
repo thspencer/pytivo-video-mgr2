@@ -1,9 +1,12 @@
-version = 1
 '''
 Created on Aug 3, 2011
 
 @author: Jeff
 '''
+import os
+import sys
+sys.path.append(os.path.dirname(__file__))
+
 from VideoShare import VideoShare
 from DVDShare import DVDShare
 from VideoFile import VideoFile
@@ -13,8 +16,6 @@ from Meta import MetaHarvester, MetaList
 import ConfigParser
 import cPickle as pickle
 from Node import Node
-import os
-import sys
 from Config import SHARETYPE_VIDEO, SHARETYPE_DVD
 
 VMSECTION = "vidmgr"
@@ -24,6 +25,9 @@ BUILDINI = 'buildcache.ini'
 NESTLIMIT = 10000
 
 def flatten(node, vfl):
+	if node == None:
+		return
+	
 	if isinstance(node, Node):
 		for v in node.vlist:
 			flatten(v, vfl)
@@ -65,6 +69,9 @@ def flattenVF(vf, vfl):
 	return index
 
 def unflatten(node, vfl):
+	if node == None:
+		return
+	
 	if isinstance(node, Node):
 		for v in node.vlist:
 			unflatten(v, vfl)
@@ -76,7 +83,7 @@ def unflatten(node, vfl):
 		nvl = []
 		for vx in node.videoList:
 			nvl.append(unflattenVF(vx, vfl, node))
-		node.videoList = nvl
+		node.videoList = [x for x in nvl]
 		for v in node.dirList:
 			unflatten(v, vfl)
 	
@@ -84,13 +91,13 @@ def unflatten(node, vfl):
 		nvl = []
 		for vx in node.videoList:
 			nvl.append(unflattenVF(vx, vfl, node))
-		node.videoList = nvl
+		node.videoList = [x for x in nvl]
 
 	elif isinstance(node, MetaList):
 		nvl = []
 		for vx in node.vlist:
 			nvl.append(unflattenVF(vx, vfl, node))
-		node.vlist = nvl
+		node.vlist = [x for x in nvl]
 
 	else:
 		print "Encountered unknown object type while unflattening"
@@ -111,7 +118,7 @@ class VideoList:
 	def findVideo(self, fid):
 		for v in self.list:
 			if v.getFileID() == fid:
-				print "Found %d refs to: %s" % (v.getRefCount()+1, v.getFullPath())
+				print "Found %d previous references to: %s" % (v.getRefCount(), v.getFullPath())
 				return v
 			
 		return None
@@ -139,36 +146,6 @@ class VideoCache:
 		self.filename = os.path.join(p, CACHEFILE)
 		
 	def load(self):
-		if version == 1:
-			self.load1()
-		else:
-			self.load2()
-
-	def load1(self):
-		self.cache = None
-
-		try:
-			f = open(self.filename)
-		except:
-			print "Video Cache does not exist - attempting to build..."
-			self.build()
-			self.built = True
-		else:
-			try:
-				sys.setrecursionlimit(NESTLIMIT)
-				self.cache = pickle.load(f)
-				self.built = False
-			except:
-				print "Error loading video cache - trying to build..."
-				self.build()
-				self.built = True
-		
-			f.close()
-
-			
-		return self.cache
-
-	def load2(self):
 		self.cache = None
 
 		try:
@@ -205,11 +182,18 @@ class VideoCache:
 				if not cfg.has_option(section, key): break
 				cfgfile = cfg.get(section, key)
 				
-				shares.extend(self.loadPyTivoShares(cfgfile))
+				key = "pytivo" + str(i) + ".skip"
+				skip = []
+				if cfg.has_option(section, key):
+					sk = cfg.get(section, key).split(",")
+					skip = [s.strip() for s in sk]
+					print "skipping shares (", skip, ") from pyTivo number %d" % i
+				
+				shares.extend(self.loadPyTivoShares(cfgfile, skip))
 				
 		return shares
 					
-	def loadPyTivoShares(self, cf):
+	def loadPyTivoShares(self, cf, skip):
 		shares = []
 		pyconfig = ConfigParser.ConfigParser()
 		if not pyconfig.read(cf):
@@ -217,15 +201,16 @@ class VideoCache:
 			return shares
 
 		for section in pyconfig.sections():
-			if (pyconfig.has_option(section, "type") and pyconfig.get(section, "type") == "video" and 
-				pyconfig.has_option(section, 'path')):
-				path = pyconfig.get(section, 'path')
-				shares.append([section, path, SHARETYPE_VIDEO])
-				
-			if (pyconfig.has_option(section, "type") and pyconfig.get(section, "type") == "dvdvideo" and 
-				pyconfig.has_option(section, 'path')):
-				path = pyconfig.get(section, 'path')
-				shares.append([section, path, SHARETYPE_DVD])
+			if not section in skip:
+				if (pyconfig.has_option(section, "type") and pyconfig.get(section, "type") == "video" and 
+					pyconfig.has_option(section, 'path')):
+					path = pyconfig.get(section, 'path')
+					shares.append([section, path, SHARETYPE_VIDEO])
+					
+				elif (pyconfig.has_option(section, "type") and pyconfig.get(section, "type") == "dvdvideo" and 
+					pyconfig.has_option(section, 'path')):
+					path = pyconfig.get(section, 'path')
+					shares.append([section, path, SHARETYPE_DVD])
 				
 		return shares
 
@@ -298,30 +283,6 @@ class VideoCache:
 		return root
 	
 	def save(self, force=False):
-		if version == 1:
-			self.save1(force)
-		else:
-			self.save2(force)
-
-	def save1(self, force=False):
-		if not force and self.built:
-			print "Video cache not being saved because it was built dynamically on entry"
-			return
-
-		try:
-			f = open(self.filename, 'w')
-		except:
-			print "Error opening video cache file for write"
-		else:
-			try:
-				sys.setrecursionlimit(NESTLIMIT)
-				pickle.dump(self.cache, f)
-			except:
-				print "Error saving video cache"
-			else:
-				f.close()
-
-	def save2(self, force=False):
 		if not force and self.built:
 			print "Video cache not being saved because it was built dynamically on entry"
 			return

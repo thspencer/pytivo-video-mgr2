@@ -160,13 +160,15 @@ You can have an arbitrary number of Tivos, but as soon as vidmgr detects a gap i
 sequence it will stop parsing.  Make sure the TSN's are accurate as this is how pytivo knows which
 tivo to push to.
 
-	d) You need to tell vidmgr about your PyTivo instances.  There are 4 possible pytivo parameters:
+	d) You need to tell vidmgr about your PyTivo instances.  There are 5 possible pytivo parameters:
 		- config is mandatory and is the fully qualified name of the pytivo config file. 
 vidmgr reads this file to determine the share names and locations.  
 		- You may specify an ip address for the machine on which this instance of pytivo is running.
 If you do not specify one, the local IP address is used.
 		- If the pytivo config file names a port in the server section, then vidmgr will
 use that port number.  Otherwise you need to specify the port number here.
+		- if you do not wish to include ALL shares in the vidmgr listing, then specify the share name(s)
+that you wish to skip.  If this line is missing, all shares are included
 		-Finally, if your hme server is running in a different host environment than this
 instance of pytivo, then you need to specify the directory separator character for the pytivo environment.
 
@@ -174,6 +176,7 @@ format for specifying pytivo information:
 [pytivos]
 pytivo1.config=/usr/local/pytivo/pyTivo.conf
 pytivo1.ip=192.168.1.201
+pytivo1.skip=share1, share2, ...
 pytivo1.port=9032
 pytivo1.sep=/
 
@@ -263,7 +266,7 @@ means if you have deleted a video, since this is the only change possible throug
 your cache ahead of time, your are responsible for keeping it up to date as you add/delete videos.  This is the way
 mine is configured, and I rebuild my cache each night through a cron job.
 
-As a convenience, you can also trigger a rebuild of the cache with the remote control by hitting Thumbs-Up three
+As a convenience, you can also trigger a rebuild of the cache with the remote control by hitting Thumbs-Doen three
 times in succession.  The app will be non-responsive while the cache is rebuilding.  After it is done, it will
 restart at the top of the tree.
 
