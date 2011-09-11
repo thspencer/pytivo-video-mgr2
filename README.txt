@@ -19,13 +19,14 @@ improvements that will be visible to users:
 	    building the cache ahead of time is that you can get more complex in terms of the way the 
 	    cache is built.  The cache supports the ability to search through your videos with any meta data
 	    item YOU deem is significant.  As shipped, the cache builds an index based on actors and genre,
-	    but if you want to add directors, etc, you can easily do so.  It's even possible to build a complex
-	    cache at thread start time if you are willing to tolerate a small delay.  My small ARM-based NAS
-	    builds my cache containing ~400 videos, including the meta data indexes I mentioned above, in less
-	    than 5 seconds.
+	    but if you want to add directors, etc, you can easily do so.  You can even create an index for all
+	    videos that have "John Wayne" in them.  It's even possible to build a complex cache at thread start
+	    time if you are willing to tolerate a small delay.  My small ARM-based NAS builds my cache containing
+	    ~400 videos, including the meta data indexes I mentioned above, in less than 5 seconds.
 	    
 	2.) You now have the ability to change options on a directory by directory basis.  You want this
-	    directory sorted on episode number and that one sorted on show title - no problem.
+	    directory sorted on episode number and that one sorted on show title - no problem.  sorting can now
+	    be done based on ANY combinations of strings from the metadata
 	    
     3.) the user interface was cleaned up - there is no longer a menu choice for push/delete.  Pushing is
         accomplished by pressing the select button - if you have multiple tivos a dialog box will pop-up
@@ -51,6 +52,10 @@ fork of pytivo.  I am not familiar with the other forks to know whether or not i
 
 installation/setup
 ==================
+
+First a caveat: I have had difficulties getting this to run under python 2.6 on Linux.  2.5 is just fine.  I'm
+not sure what the cause is yet, but until this is determined, I would recommend that you use 2.5.  I have
+no empirical data yet for later releases or for versions under windows.
 
 If you've gotten this far, you must want to install this.  It's very simple:
 
@@ -104,10 +109,13 @@ display=value
    normal - (default) displays program title followed by episode title
    
 sort=value
-   determines how listings are sorted:
-   episodenumber - sort based on episode number - note this is a string sort - not a numeric sort
-   file - sort based on the filename
-   normal - (default) sorts based on the program title and episode title
+   determines how listings are sorted.  This is simply a list of metadata tags upon which the sort
+   is to be based.  All of the specified fields are concatenated together (with a : in between) in the
+   specified order to build the sort key.  If a particular video contains no matching metadata items,
+   the sort key defaults to the file name.  In addition to any of the metadata tags, including any YOU
+   might create yourself, the following special tags are allowed: file - indicates the file name, and
+   titleNumber - indicates the title number for DVD titles.  The default value for sort is
+   	"title episodeTitle"
 
 metafirst = title seriesTitle episodeTitle description
 metaignore = isEpisode isEpisodic
@@ -191,7 +199,7 @@ you need to specify "pytivox.sep=/".  Otherwise, vidmgr will happily send its re
 pytivo using a backslash in the paths and this will cause pytivo to choke.
 
 You can provide local configuration files to change behavior for a particular directory and its complete
-subtree.  In any of your share directories, you can create a file names ".vidmgr.ini" and put local changes
+subtree.  In any of your share directories, you can create a file namesd ".vidmgr.ini" and put local changes
 into it.  These changes will override the config.ini file in that directory and in all subdirectories
 below that point.  You can only do this with a subset of configuration parameters:
 
@@ -199,11 +207,11 @@ below that point.  You can only do this with a subset of configuration parameter
 						deleteallowed = false everywhere, but I have it set to true in my podcasts 
 						directory - otherwise these directories quickly become cluttered
 						
-	sort				change the algorithm for constructing sort keys for this directory.  For
-						episodic shows you might want to sort on episode number (epnum) and for
-						non-episodic shows, you might want to sort on title (normal)
+	sort				change the metadata tags for constructing sort keys for this directory.  For
+						episodic shows you might want to sort on episodeNumber and for
+						non-episodic shows, you might want to sort on title
 						
-	display				change the algorithm for constructing test that is displayed on the TV
+	display				change the algorithm for constructing text that is displayed on the TV
 	
 =======================================================================================================
 
@@ -278,10 +286,18 @@ sharepage=False
 topsubtitle=Main Menu
 
 [Browse by Genre]
+sort = sort metadata keys for this virtual share
 tags = vProgramGenre vSeriesGenre
 
 [Browse by Actor]
+sort = sort metadata keys for this virtual share
 tags = vActor
+
+[Arnie and Duke]
+values = vActor:John Wayne, Arnold Schwarzenegger
+
+[Series]
+values = isEpisodic:true,True,TRUE
 
 
 
@@ -304,15 +320,29 @@ The options section contains the following options:
 		
 		
 The remainder of the ini file indicates what entries you want to have on the root screen, and what metadata tag(s) these
-should be based on.  In the above example, I will have two additional choices on the root screen:
+should be based on.  In the above example, I will have four additional choices on the root screen.  The first two produce
+virtual directory structures based on the Genre and on the Actors.  Under the Genre folder will be a list of all of the Genre
+found in the metadata, and under Actor will be found all the actor names found in the metadata:
 	Browse by Genre
 		is based on the metadata tags 'vProgramGenre' and 'vSeriesGenre'
 		
 	Browse by Actor
 		is based on the metadata tags 'vActor'
 		
+The third and fourth examples ahow how a virtual share can be built based on whether or not a particular metadata tag contains
+one of a set of values.  In the first example, only videos that have either "John Wayne" or "Arnold Schwarzenegger" in the vActor
+field.  The last example contains only videos whose isEpisodic value is set to True (or true or TRUE).  You can specify
+multiple metadata expressions on the same line, separated by a forward slash (/).  Use NO unnecessary spaces; spaces are
+significant (as shown by the actor names above) and if you put spaces around the slashes (or commas) then they will be part
+of the matching criteria.  If you have multiple expressions on the same line, the ALL must be satisfied by the matching 
+algorithm in order for a video to be included in the virtual share.  The general syntax is:
+values=tag:value,value,value/tag:value,value/ ...
+		
 You can add any number of such entries.  If the tag(s) you specify do not exist for any particular video, that video will
 not be part of that index. 
+
+As shown above, you can have a sort specification for each of these "virtual shares".  This is optional.  If missing,
+the sort values from config.ini will be used.
 
 In some cases it is possible for two different tags for the same video to have the same value.  The code is aware of this
 and will not have a duplicate entry.  A message will be printed out during cache creation, but only a single entry will

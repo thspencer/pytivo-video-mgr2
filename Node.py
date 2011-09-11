@@ -4,28 +4,60 @@ Created on Aug 6, 2011
 @author: Jeff
 '''
 class Node:
-	def __init__(self, name, list = None):
+	def __init__(self, name, opts, videoList = None, dirList=None):
 		self.name = name
-		if list == None:
-			self.vlist = []
+		self.opts = opts
+		if videoList == None:
+			self.videoList = []
 		else:
-			self.vlist = list
+			self.videoList = videoList
+			
+		if dirList == None:
+			self.dirList = []
+		else:
+			self.dirList = dirList
+
+	def setOpts(self, opts):
+		self.opts = opts
 		
-	def getTitle(self):
+	def getOpts(self):
+		return self.opts
+			
+	def formatDisplayText(self, fmt):
 		return self.name
 	
 	def getFullTitle(self):
 		return self.name
 	
-	def addNode(self, node):
-		self.vlist.append(node)
+	def addVideo(self, node):
+		self.videoList.append(node)
+		
+	def setVideoList(self, vl):
+		self.videoList = [n for n in vl]
+	
+	def getVideoList(self):
+		return self.videoList
+	
+	def addDir(self, node):
+		self.dirList.append(node)
+		
+	def setDirList(self, dl):
+		self.dirList = [n for n in dl]	
+	
+	def getDirList(self):
+		return self.dirList
 	
 	def __len__(self):
-		return len(self.vlist)
+		return len(self.videoList) + len(self.dirList)
 	
 	def getItem(self, x):
-		if x < len(self.vlist):
-			return self.vlist[x]
+		i = x
+		if x < len(self.dirList):
+			return self.dirList[x]
+		
+		i = x - len(self.dirList)
+		if i < len(self.videoList):
+			return self.videoList[i]
 		
 		return None
 	
@@ -37,9 +69,10 @@ class Node:
 		return self
 	
 	def next(self):
-		if self.__index__ < len(self.vlist):
-			i = self.__index__
-			self.__index__ += 1
-			return self.vlist[i]
-		
-		raise StopIteration
+		v = self.getItem(self.__index__)
+		self.__index__ += 1
+
+		if v == None:		
+			raise StopIteration
+		else:
+			return v

@@ -17,10 +17,10 @@ class DVDShare:
 		self.count = 0
 		self.root = root
 
-		self.vlist = VideoDir(self.opts, "", "", root, name)
+		self.videoDir = VideoDir(self.opts, "", "", root, name)
 		
 		shareopts = {"": self.opts}
-		sharedirs = {"": self.vlist}
+		sharedirs = {"": self.videoDir}
 
 		tree = os.walk(root)
 
@@ -32,6 +32,7 @@ class DVDShare:
 			vdir = sharedirs[rpath]
 			lopts = shareopts[rpath]
 			Config.addLocalOpts(lopts, root, rpath)
+			vdir.setOpts(lopts)
 
 			if self.isDvdDir(path):
 				p, deftitle = os.path.split(path)
@@ -49,6 +50,7 @@ class DVDShare:
 
 						meta, t = self.loadDvdMeta(path, lopts, file, title, True)
 						meta['title'] = title
+						meta['titleNumber'] = tn
 						vf.setMeta(meta)
 
 						for h in harvesters:
@@ -114,29 +116,32 @@ class DVDShare:
 		return (meta, titles)
 
 	def __iter__(self):
-		return self.vlist.__iter__()
+		return self.videoDir.__iter__()
 	
 	def __len__(self):
-		return self.vlist.__len__()
+		return self.videoDir.__len__()
 	
 	def getMeta(self):
-		return self.vlist.getMeta()
+		return self.videoDir.getMeta()
+	
+	def getOpts(self):
+		return self.opts
 	
 	def getItem(self, x):
-		return self.vlist.getItem(x)
+		return self.videoDir.getItem(x)
 	
-	def getTitle(self):
+	def formatDisplayText(self, fmt):
 		return self.title
 	
 	def getFullTitle(self):
 		return self.title
 					
-	def getVList(self):
-		return self.vlist
+	def getVideoDir(self):
+		return self.videoDir
 	
 	def VideoCount(self):
 		return self.count
 
 	def __str__(self):
-		s = "Name: " + self.name + "\n" + "Root: " + self.root + "\n" + str(self.vlist)
+		s = "Name: " + self.name + "\n" + "Root: " + self.root + "\n" + str(self.videoDir)
 		return s

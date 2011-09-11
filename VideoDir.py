@@ -14,19 +14,18 @@ class VideoDir:
 		self.path = rpath
 		self.apath = apath
 		self.title = name
-		self.sorttext = name
 		self.videoList = []
 		self.dirList = []
 		self.meta = {}
 		
-	def getTitle(self):
+	def formatDisplayText(self, fmt):
 		return "%s (%d)" % (self.title, self.__len__())
 	
 	def getFullTitle(self):
 		return "%s : %s" % (self.share, os.path.join(self.path, self.name))
 		
-	def getSortText(self):
-		return self.sorttext
+	def formatSortText(self, fmt):
+		return self.name
 	
 	def getShare(self):
 		return self.share
@@ -45,6 +44,12 @@ class VideoDir:
 		
 	def getMeta(self):
 		return self.meta
+	
+	def setOpts(self, opts):
+		self.opts = opts.copy()
+		
+	def getOpts(self):
+		return self.opts
 		
 	def addVideo(self, v):
 		self.videoList.append(v)	
@@ -56,15 +61,29 @@ class VideoDir:
 				del self.videoList[i]
 				return
 			
+	def setVideoList(self, vl):
+		self.videoList = [n for n in vl]
+		
+	def getVideoList(self):
+		return self.videoList
+				
 	def addDir(self, d):
 		self.dirList.append(d)
 
+	def setDirList(self, dl):
+		self.dirList = [n for n in dl]
+		
+	def getDirList(self):
+		return self.dirList				
 
 	def sort(self):
 		def cmpNodes(a, b):
-			ta = a.getSortText()
-			tb = b.getSortText()
-			return cmp(ta, tb)
+			ta = a.formatSortText(self.opts['sortopt'])
+			tb = b.formatSortText(self.opts['sortopt'])
+			if (self.opts['sortup']):
+				return cmp(ta, tb)
+			else:
+				return cmp(tb, ta)
 		
 		s = sorted(self.videoList, cmpNodes)
 		self.videoList = s

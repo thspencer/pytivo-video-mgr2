@@ -28,85 +28,55 @@ def flatten(node, vfl):
 	if node == None:
 		return
 	
-	if isinstance(node, Node):
-		for v in node.vlist:
+	if (isinstance(node, Node)
+			or isinstance(node, VideoDir)
+			or isinstance(node, DVDDir)
+			or isinstance(node, MetaList)):
+		nvl = []
+		for v in node.getVideoList():
+			i = v.getIndex()
+			if i == None:
+				i = len(vfl)
+				vfl.append(v)
+				v.flatten(i)
+				
+			nvl.append(i)
+			
+		node.setVideoList(nvl)
+		
+		for v in node.getDirList():
 			flatten(v, vfl)
 
 	elif isinstance(node, DVDShare) or isinstance(node, VideoShare):
-		flatten(node.vlist, vfl)
-
-	elif isinstance(node, VideoDir):
-		nvl = []
-		for v in node.videoList:
-			nvl.append(flattenVF(v, vfl))
-		node.videoList = nvl
-		for v in node.dirList:
-			flatten(v, vfl)
-	
-	elif isinstance(node, DVDDir):
-		nvl = []
-		for v in node.videoList:
-			nvl.append(flattenVF(v, vfl))
-		node.videoList = nvl
-
-	elif isinstance(node, MetaList):
-		nvl = []
-		for v in node.vlist:
-			nvl.append(flattenVF(v, vfl))
-		node.vlist = nvl
+		flatten(node.getVideoDir(), vfl)
 
 	else:
-		print "Encountered unknown object type while flattening"
-
-def flattenVF(vf, vfl):
-	index = vf.getIndex()
-
-	if index == None:
-		index = len(vfl)
-		vfl.append(vf)
-		vf.flatten(index)
-
-	return index
+		print "Encountered unknown object type while flattening: ", node
 
 def unflatten(node, vfl):
 	if node == None:
 		return
 	
-	if isinstance(node, Node):
-		for v in node.vlist:
+	if (isinstance(node, Node)
+			or isinstance(node, VideoDir)
+			or isinstance(node, DVDDir)
+			or isinstance(node, MetaList)):
+		nvl = []
+		for v in node.getVideoList():
+			vf = vfl[v]
+			vf.unflatten(node)
+			nvl.append(vf)
+			
+		node.setVideoList(nvl)
+		
+		for v in node.getDirList():
 			unflatten(v, vfl)
 
 	elif isinstance(node, DVDShare) or isinstance(node, VideoShare):
-		unflatten(node.vlist, vfl)
-
-	elif isinstance(node, VideoDir):
-		nvl = []
-		for vx in node.videoList:
-			nvl.append(unflattenVF(vx, vfl, node))
-		node.videoList = [x for x in nvl]
-		for v in node.dirList:
-			unflatten(v, vfl)
-	
-	elif isinstance(node, DVDDir):
-		nvl = []
-		for vx in node.videoList:
-			nvl.append(unflattenVF(vx, vfl, node))
-		node.videoList = [x for x in nvl]
-
-	elif isinstance(node, MetaList):
-		nvl = []
-		for vx in node.vlist:
-			nvl.append(unflattenVF(vx, vfl, node))
-		node.vlist = [x for x in nvl]
+		unflatten(node.getVideoDir(), vfl)
 
 	else:
-		print "Encountered unknown object type while unflattening"
-
-def unflattenVF(vx, vfl, node):
-	vf = vfl[vx]
-	vf.unflatten(node)
-
-	return vf
+		print "Encountered unknown object type while unflattening: ", node
 
 class VideoList:
 	def __init__(self):
@@ -118,7 +88,6 @@ class VideoList:
 	def findVideo(self, fid):
 		for v in self.list:
 			if v.getFileID() == fid:
-				print "Found %d previous references to: %s" % (v.getRefCount(), v.getFullPath())
 				return v
 			
 		return None
@@ -139,7 +108,7 @@ class VideoCache:
 	def __init__(self, opts, cfg):
 		self.cache = None
 		self.built = None
-		self.opts = opts
+		self.opts = opts.copy()
 		self.cfg = cfg
 		self.vidlist = VideoList()
 		p = os.path.dirname(__file__)
@@ -215,6 +184,11 @@ class VideoCache:
 		return shares
 
 	def build(self):
+		def cmpHarvesters(a, b):
+			ta = a.formatDisplayText(None)
+			tb = b.formatDisplayText(None)
+			return cmp(ta, tb)
+		
 		p = os.path.dirname(__file__)
 		fn = os.path.join(p, BUILDINI)
 		bcfg = ConfigParser.ConfigParser()
@@ -227,8 +201,28 @@ class VideoCache:
 		if bcfg.read(fn):
 			for section in bcfg.sections():
 				if section != OPTSECT:
+					lopts = self.opts.copy()
+					if bcfg.has_option(section, 'sort'):
+						lopts['sortopt'] = bcfg.get(section,'sort').split()
 					if bcfg.has_option(section, 'tags'):
-						harvesters.append(MetaHarvester(section, bcfg.get(section,'tags').split()))
+						h = MetaHarvester(section, lopts)
+						h.setKeySet(bcfg.get(section,'tags').split())
+						harvesters.append(h)
+					elif bcfg.has_option(section, 'values'):
+						terms = bcfg.get(section, 'values').split('/')
+						vdict = {}
+						for t in terms:
+							v = t.split(':')
+							if len(v) != 2:
+								print "Error in buildcache.ini - syntax on values statement in section %s" % section
+								return
+							tag = v[0]
+							vals = v[1].split(',')
+							vdict[tag] = vals
+							
+						h = MetaHarvester(section, lopts)
+						h.setKeyVal(vdict)
+						harvesters.append(h)
 
 			if bcfg.has_option(OPTSECT, 'sharepage'):
 				v = bcfg.get(OPTSECT, 'sharepage')
@@ -245,10 +239,10 @@ class VideoCache:
 			self.cache = None
 			return
 
-		root = Node(title)
+		root = Node(title, self.opts)
 
 		if sharepage:
-			shares = Node("Browse Shares")
+			shares = Node("Browse Shares", self.opts)
 			for name, path, type in sl:
 				if type == SHARETYPE_VIDEO:
 					print "Processing video share " + name
@@ -259,8 +253,8 @@ class VideoCache:
 					s = DVDShare(self.opts, name, path, self.vidlist, harvesters)
 					print "%d DVD Videos found" % s.VideoCount()
 					
-				shares.addNode(s)
-			root.addNode(shares)
+				shares.addDir(s)
+			root.addDir(shares)
 		else:
 			for name, path, type in sl:
 				if type == SHARETYPE_VIDEO:
@@ -272,11 +266,16 @@ class VideoCache:
 					s = DVDShare(self.opts, name, path, self.vidlist, harvesters)
 					print "%d DVD Videos found" % s.VideoCount()
 
-				root.addNode(s)
+				root.addDir(s)
 
-		for h in harvesters:
-			print "%s count: %d" % (h.getTitle(), len(h))
-			root.addNode(Node(h.getTitle(), h.getMetaLists()))
+		for h in sorted(harvesters, cmpHarvesters):
+			title = h.formatDisplayText(None)
+			list = h.getMetaLists()
+			print "%s count: %d" % (title, len(h))
+			if isinstance(list, MetaList):
+				root.addDir(list)
+			else:
+				root.addDir(Node(title, self.opts, dirList = list))
 
 		self.cache = root
 
@@ -292,11 +291,7 @@ class VideoCache:
 		except:
 			print "Error opening video cache file for write"
 		else:
-			try:
 				vfl = []
 				flatten(self.cache, vfl)
 				pickle.dump((self.cache, vfl), f)
-			except:
-				print "Error saving video cache"
-			else:
 				f.close()

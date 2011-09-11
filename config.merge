@@ -4,7 +4,6 @@ apps=vidmgr
 [vidmgr]
 exts=.mpg .mp4 .avi .wmv .m4v
 display=episodenumtitle
-sort=file
 deleteallowed=false
 skin=blue
 metaspace=description title

@@ -17,11 +17,11 @@ class VideoShare:
 		self.opts = opts.copy()
 		self.count = 0
 		self.root = root
-		self.vlist = VideoDir(opts, "", "", root, name)
+		self.videoDir = VideoDir(opts, "", "", root, name)
 		
 		tree = os.walk(root)
 		
-		sharedirs = {"": self.vlist}
+		sharedirs = {"": self.videoDir}
 		shareopts = {"": self.opts}
 
 		for path, dirs, files in tree:
@@ -31,6 +31,7 @@ class VideoShare:
 			vl = sharedirs[rpath]
 			lopts = shareopts[rpath]
 			Config.addLocalOpts(lopts, root, rpath)
+			vl.setOpts(lopts)
 			
 			for name in dirs:
 				if name.startswith("."): continue
@@ -72,29 +73,32 @@ class VideoShare:
 						
 
 	def __iter__(self):
-		return self.vlist.__iter__()
+		return self.videoDir.__iter__()
 	
 	def __len__(self):
-		return self.vlist.__len__()
+		return self.videoDir.__len__()
 	
 	def getMeta(self):
-		return self.vlist.getMeta()
+		return self.videoDir.getMeta()
 	
 	def getItem(self, x):
-		return self.vlist.getItem(x)
+		return self.videoDir.getItem(x)
 	
-	def getTitle(self):
+	def formatDisplayText(self, fmt):
 		return self.title
+	
+	def getOpts(self):
+		return self.opts
 	
 	def getFullTitle(self):
 		return self.title
 					
-	def getVList(self):
-		return self.vlist
+	def getVideoDir(self):
+		return self.videoDir
 	
 	def VideoCount(self):
 		return self.count
 
 	def __str__(self):
-		s = "Name: " + self.name + "\n" + "Root: " + self.root + "\n" + str(self.vlist)
+		s = "Name: " + self.name + "\n" + "Root: " + self.root + "\n" + str(self.videoDir)
 		return s

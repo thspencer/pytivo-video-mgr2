@@ -37,16 +37,6 @@ submenuheight = 166
 submenuwidth = 260
 submenulineheight = 30
 
-DISP_NORMAL = 0
-DISP_FILE = 1
-DISP_EPTITLE = 2
-DISP_EPNUMTITLE = 3
-
-SORT_NORMAL = 0
-SORT_FILE = 1
-SORT_EPNUM = 2
-SORT_DISPLAY = 3
-
 MYKEY_PUSHRESUME = 0
 MYKEY_PUSHCOMPLETE = 1
 MYKEY_DELETECONFIRM = 10
@@ -75,8 +65,9 @@ def load(cfg):
 			'skin' : None,
 			'deleteallowed' : True,
 			'thumbjustify' : RSRC_HALIGN_LEFT,
-			'dispopt' : DISP_NORMAL,
-			'sortopt' : SORT_NORMAL
+			'dispopt' : ['title', 'episodeTitle'],
+			'sortopt' : ['title', 'episodeTitle'],
+			'sortup' : True
 			}
 
 	if cfg.has_section('vidmgr'):
@@ -141,28 +132,18 @@ def load(cfg):
 					raise ConfigError("Config error - invalid value for thumbjustify (left, center, right)")
 
 			elif opt == 'display':
-				if (lval == 'episodetitle'):
-					opts['dispopt'] = DISP_EPTITLE
-				elif (lval == 'episodenumtitle'):
-					opts['dispopt'] = DISP_EPNUMTITLE
-				elif (lval == 'file'):
-					opts['dispopt'] = DISP_FILE
-				elif (lval == 'normal'):
-					opts['dispopt'] = DISP_NORMAL
-				else:
-					raise ConfigError("Config error - Invalid display option (episodetitle, episodenumtitle, file, normal)")
+				opts['dispopt'] = value.split()
 
 			elif opt == 'sort':
-				if (lval == 'episodenumber'):
-					opts['sortopt'] = SORT_EPNUM
-				elif (lval == 'file'):
-					opts['sortopt'] = SORT_FILE
-				elif (lval == 'normal'):
-					opts['sortopt'] = SORT_NORMAL
-				elif (lval == 'display'):
-					opts['sortopt'] = SORT_DISPLAY
+				opts['sortopt'] = value.split()
+				
+			elif opt == 'sortdirection':
+				if lval == 'down':
+					opts['sortup'] = False
+				elif lval == 'up':
+					opts['sortup'] = True
 				else:
-					raise ConfigError("Config error - Invalid sort option (episodenumber, file, display, normal)")
+					raise ConfigError("Config error - sortdirection must be up or down")
 
 			else:
 				raise ConfigError("Config error - unknown option (%s)" % opt)
@@ -179,7 +160,6 @@ def addLocalOpts(opts, root, path):
 		for opt, value in cfg.items('vidmgr'):
 			lval = value.lower()
 			if opt == 'deleteallowed':
-				print "Changing delete allowed to %s" % value
 				if lval == "false":
 					opts['deleteallowed'] = False
 				elif lval == "true":
@@ -188,30 +168,19 @@ def addLocalOpts(opts, root, path):
 					print "Invalid value for deleteallowed in %s" % cfgfn
 
 			elif opt == 'display':
-				print "Changing display to %s" % value
-				if (lval == 'episodetitle'):
-					opts['dispopt'] = DISP_EPTITLE
-				elif (lval == 'episodenumtitle'):
-					opts['dispopt'] = DISP_EPNUMTITLE
-				elif (lval == 'file'):
-					opts['dispopt'] = DISP_FILE
-				elif (lval == 'normal'):
-					opts['dispopt'] = DISP_NORMAL
+				opts['dispopt'] = value.split()
+
+			elif opt == 'sortdirection':
+				if lval == 'down':
+					opts['sortup'] = False
+				elif lval == 'up':
+					opts['sortup'] = True
 				else:
-					print "Invalid value for display in %s" % cfgfn
+					print "Invalid value for sortdirection (up, down) in %s" % cfgfn
 
 			elif opt == 'sort':
-				print "Changing sort to %s" % value
-				if (lval == 'episodenumber'):
-					opts['sortopt'] = SORT_EPNUM
-				elif (lval == 'file'):
-					opts['sortopt'] = SORT_FILE
-				elif (lval == 'normal'):
-					opts['sortopt'] = SORT_NORMAL
-				elif (lval == 'display'):
-					opts['sortopt'] = SORT_DISPLAY
-				else:
-					print "Invalid value for sort in %s" % cfgfn
+				opts['sortopt'] = value.split()
+
 			else:
 				print "Invalid option (%s) in %s" % (opt, cfgfn)
 

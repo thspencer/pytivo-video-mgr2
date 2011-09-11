@@ -156,6 +156,7 @@ class Vidmgr(Application):
 		self.SubTitleView.set_text(self.rootNode.getFullTitle(), font=self.app.myfonts.fnt20, colornum=0xffffff, flags=RSRC_VALIGN_BOTTOM)
 
 		self.currentNode, self.currentItem = self.ldm.Descend(self.rootNode)
+		self.lopts = self.rootNode.getOpts()
 		self.ddm.show(self.currentItem)
 		
 		if self.currentNode == None:
@@ -256,6 +257,7 @@ class Vidmgr(Application):
 				self.SubTitleView.set_text(self.currentItem.getFullTitle(),
 								font=self.app.myfonts.fnt20,
 								colornum=0xffffff, flags=RSRC_VALIGN_BOTTOM)
+				self.lopts = self.currentItem.getOpts()
 				self.currentNode, self.currentItem = self.ldm.Descend(self.currentItem)
 			self.ddm.show(self.currentItem)
 			self.sound('updown')
@@ -266,7 +268,7 @@ class Vidmgr(Application):
 			else:
 				MessageBox(self.app, "Delete Confirmation",
 						"Press THUMBS-UP button to confirm deletion of " + 
-						self.currentItem.getTitle(),
+						self.currentItem.formatDisplayText(self.lopts['dispopt']),
 						'alert',
 						[
 						 [[KEY_THUMBSUP], MYKEY_DELETECONFIRM], 

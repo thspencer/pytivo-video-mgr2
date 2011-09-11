@@ -53,6 +53,7 @@ class ListDisplayManager:
 	def Descend(self, node):
 		self.stack.append([self.node, self.listOffset, self.listSelection])
 		self.node = node
+		self.opts = node.getOpts()
 		self.listSize = len(self.node)
 		self.listOffset = 0
 		self.listSelection = 0
@@ -104,7 +105,7 @@ class ListDisplayManager:
 				sx = i + self.listOffset
 				if (sx < self.listSize):
 					item = self.node.getItem(sx)
-					self.vwListText[i].set_text(item.getTitle(), font=self.app.myfonts.fnt24,
+					self.vwListText[i].set_text(item.formatDisplayText(self.opts['dispopt']), font=self.app.myfonts.fnt24,
 										colornum=0xffffff, flags=RSRC_HALIGN_LEFT)
 					icon = self.getIcon(item)
 					if icon == None:

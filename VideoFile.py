@@ -2,7 +2,6 @@
 Created on Aug 3, 2011
 '''
 import os
-from Config import DISP_NORMAL, DISP_FILE, DISP_EPTITLE, DISP_EPNUMTITLE, SORT_NORMAL, SORT_DISPLAY, SORT_FILE, SORT_EPNUM
 
 from DVDDir import DVDDir
 from Meta import MetaList
@@ -12,7 +11,6 @@ class VideoFile:
 		self.opts = opts.copy()
 		self.filename = fn
 		self.title = fn
-		self.sorttext = fn
 		self.fileID = fid
 		self.path = dir
 		self.vRef = []
@@ -34,6 +32,9 @@ class VideoFile:
 
 	def getIndex(self):
 		return self.index
+	
+	def getOpts(self):
+		return self.opts
 
 	def addVideoRef(self, dir):
 		self.vRef.append(dir)
@@ -65,7 +66,7 @@ class VideoFile:
 		return False
 	
 	def delVideo(self):
-		if self.isDVDVideo():
+		if not self.isDeletable():
 			return
 		
 		for d in self.vRef:
@@ -97,66 +98,63 @@ class VideoFile:
 		
 		return self.vRef[0].getShare();
 	
-	def setTitle(self, t):
-		self.title = t
-
-	def setSortText(self, t):
-		self.sorttext = t
-		
-	def getTitle(self):
-		return self.title
-	
-	def getSortText(self):
-		return self.sorttext
-	
 	def setMeta(self, meta):
 		self.meta = meta
-		opt = self.opts['dispopt']
-		if opt == DISP_FILE:
-			self.setTitle(self.getFileName())
-		else:
-			if 'episodeTitle' in meta:
-				if opt == DISP_EPTITLE or opt == DISP_EPNUMTITLE:
-					if 'episodeNumber' in meta and opt == DISP_EPNUMTITLE:
-						self.setTitle(meta['episodeNumber'] + ':' + meta['episodeTitle'])
-					else:
-						self.setTitle(meta['episodeTitle'])
-				else:
-					if 'title' in meta:
-						self.setTitle(meta['title'] + ':' + meta['episodeTitle'])
-					else:
-						self.setTitle(meta['episodeTitle'])
-			elif 'title' in meta:
-				self.setTitle(meta['title'])
-			else:
-				self.setTitle(self.getFileName())
-
-		opt = self.opts['sortopt']
-		if opt == SORT_FILE:
-			self.setSortText(self.getFileName())
-		elif opt == SORT_DISPLAY:
-			self.setSortText(self.getTitle())
-		else:
-			usedEpisodeNum = False
-			if opt == SORT_EPNUM:
-				if 'episodeNumber' in meta:
-					usedEpisodeNum = True
-					if 'title' in meta:
-						self.setSortText(meta['title'] + ':' + meta['episodeNumber'])
-					else:
-						self.setTitle(meta['episodeNumber'])
-
-			if not usedEpisodeNum:
-				if 'episodeTitle' in meta:
-					if 'title' in meta:
-						self.setSortText(meta['title'] + ':' + meta['episodeTitle'])
-					else:
-						self.setSortText(meta['episodeTitle'])
-				elif 'title' in meta:
-					self.setSortText(meta['title'])
-				else:
-					self.setSortText(self.getFileName())
+		self.formatDisplayText(self.opts['dispopt'])
 		
+	def formatDisplayText(self, fmt):
+		result = ""
+
+		if fmt != None:
+			for f in fmt:
+				if f in self.meta:
+					if len(result) > 0:
+						result += " : "
+					data = self.meta[f]
+					if type(data) is list:
+						result += ', '.join(data)
+					else:
+						result += data
+
+				elif f == 'file':
+					if len(result) > 0:
+						result += " : "
+					result += self.getFileName()
+			
+		if len(result) == 0:
+			if 'title' in self.meta:
+				result = self.meta['title']
+			else:
+				result = self.getFileName()
+			
+		return result
+
+
+	def formatSortText(self, fmt):
+		result = ""
+		terms = 0
+		for f in fmt:
+			if f in self.meta:
+				data = self.meta[f]
+				if type(data) is list:
+					result += ','.join(data)
+				else:
+					result += data
+				terms += 1
+			elif f == 'file':
+				result = result + self.getFileName()
+				terms += 1
+				
+			result += ":"
+			
+		if len(result) > 0:
+			result = result[:-1]
+			
+		if terms == 0:
+			result = self.getFileName()
+
+		return result
+			
 	def getMeta(self):
 		return self.meta
 
