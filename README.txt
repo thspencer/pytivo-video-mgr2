@@ -18,7 +18,7 @@ improvements that will be visible to users:
 	    can be built when the program starts up, or ahead of time - at your choice.  The advantage of
 	    building the cache ahead of time is that you can get more complex in terms of the way the 
 	    cache is built.  The cache supports the ability to search through your videos with any meta data
-	    item YOU deem is significant.  As shipped, the cache builds an index based on actors and genre,
+	    item YOU deem is significant.  As packaged, the cache builds an index based on actors and genre,
 	    but if you want to add directors, etc, you can easily do so.  You can even create an index for all
 	    videos that have "John Wayne" in them.  It's even possible to build a complex cache at thread start
 	    time if you are willing to tolerate a small delay.  My small ARM-based NAS builds my cache containing
@@ -70,7 +70,8 @@ collection of .png files.
 
 4. Configure - you will need to merge the config.merge file that was delivered with this package with
 your config.ini file that you are currently using.  If you have a config.ini from a previous version
-of vidmgr, the only impact to you might be the skin option.  See below on how skins are handled.
+of vidmgr, there are impacts to the skin, sort, and display options.  Also, there are several new options as
+well as options on where to place additional config files.
 
 There are four areas you need to pay attention to when editing config.ini:  
 
@@ -101,21 +102,26 @@ deleteallowed=true
    this determines whether or not deletion of videos is permitted.  Default is true, set to false
    if you do not want this capability,  Deletes are never allowed for DVD Video shares
    
-display=value
-   determines what information is displayed about videos in the various lists.  allowable values are
-   episodetitle  - displays only the episode title
-   episodenumtitle - displays the episode number followed by the title
-   file - simply displays the filename
-   normal - (default) displays program title followed by episode title
-   
 sort=value
    determines how listings are sorted.  This is simply a list of metadata tags upon which the sort
    is to be based.  All of the specified fields are concatenated together (with a : in between) in the
    specified order to build the sort key.  If a particular video contains no matching metadata items,
-   the sort key defaults to the file name.  In addition to any of the metadata tags, including any YOU
-   might create yourself, the following special tags are allowed: file - indicates the file name, and
-   titleNumber - indicates the title number for DVD titles.  The default value for sort is
-   	"title episodeTitle"
+   the sort key defaults to the title metadata item.  If there it no title, the file name is used.
+   In addition to any of the metadata tags, including any YOU might create yourself, the following
+   special tags are allowed: file - indicates the file name, and titleNumber - indicates the title
+   number for DVD titles.  The default value for sort is "title episodeTitle"
+  
+sortdirection=up
+   specifies whether sorts should be ascending (up - the default value) or descending (down)
+
+display=value
+   determines what metadata is used for display on the TV.  This is simply a list of metadata tags
+   that are contatenated together (with separator in between - see below).  If a video contains no matching items,
+   then the title metadata item is used.  If there is no title, then the file name is used.  "file"
+   and "titleNumber" and any user-defined tags are available here as they are for the sort value above. 
+  
+displaysep=string
+   string to use as the separator when concatenating metadata items above.  Default is " : "
 
 metafirst = title seriesTitle episodeTitle description
 metaignore = isEpisode isEpisodic
@@ -211,7 +217,12 @@ below that point.  You can only do this with a subset of configuration parameter
 						episodic shows you might want to sort on episodeNumber and for
 						non-episodic shows, you might want to sort on title
 						
-	display				change the algorithm for constructing text that is displayed on the TV
+	sortdirection		up or down - should sorts be ascending or descending
+						
+	display				change the metadata tags for constructing the display text.  This allows different
+						metadata elements to be used in the display in different shares.  
+						
+	displaysep			change the separator to use in the formatting of the display strings
 	
 =======================================================================================================
 
@@ -244,11 +255,14 @@ for a dvdvideo share, vidmgr assumes that there is only 1 title, and its title i
 If you press select while on a video file, you will initiate the push operation.  If you only have one tivo, the
 file will simply be pushed.  If you have multiple tivos, a pop-up menu will ask you to choose the proper target.
 
-If you are posiitoned on a video file and press clear, you will have initiated the delete operation.  If deletes
+If you are positioned on a video file and press clear, you will have initiated the delete operation.  If deletes
 are not allowed or if this is a dvd video, you will simply receive a BONK sound.  Otherwise, you will be asked to
 press thumbs-up to confirm and when you do, the file and its associated metadata and artwork will be deleted.  Note
 the folder-level metadata or artwork (folder.jpg, default.txt) will NOT be deleted.  If you press ANYTHING other
-than thumbs-up, the delete is cancelled.
+than thumbs-up, the delete is cancelled.  The following video files cannot be deleted: 1) those for which deleteallowed
+is set to false, 2) and video that is part of a DVD since these are virtual files constructed on the fly from the VOB
+files, and 3) videos that have multiple file system links since vidmgr cannot follow these links to make sure that
+all references are properly updated.
 
 At any time on any list you can press the info button to see a complete list of the metadata.  You can control
 which metadata items appear at the front of this display and which are ignored (see configuration above).  On
@@ -271,10 +285,10 @@ If the cache is built dynamically, it is NEVER written back to disk.  This way, 
 
 If the cache if built ahead of time, it will be written back to disk at program exit if it has changed.  Basically this
 means if you have deleted a video, since this is the only change possible through the HME interface.  If you build 
-your cache ahead of time, your are responsible for keeping it up to date as you add/delete videos.  This is the way
+your cache ahead of time, you are responsible for keeping it up to date as you add/delete videos.  This is the way
 mine is configured, and I rebuild my cache each night through a cron job.
 
-As a convenience, you can also trigger a rebuild of the cache with the remote control by hitting Thumbs-Doen three
+As a convenience, you can also trigger a rebuild of the cache with the remote control by hitting Thumbs-Down three
 times in succession.  The app will be non-responsive while the cache is rebuilding.  After it is done, it will
 restart at the top of the tree.
 
@@ -286,11 +300,14 @@ sharepage=False
 topsubtitle=Main Menu
 
 [Browse by Genre]
-sort = sort metadata keys for this virtual share
+sort = metadata keys for sorting this virtual share
 tags = vProgramGenre vSeriesGenre
 
 [Browse by Actor]
-sort = sort metadata keys for this virtual share
+sort = metadata keys for sorting this virtual share
+display= metadata keys to be displayed for this virtual share
+displaysep=-
+sortdirection=down
 tags = vActor
 
 [Arnie and Duke]
@@ -298,6 +315,7 @@ values = vActor:John Wayne, Arnold Schwarzenegger
 
 [Series]
 values = isEpisodic:true,True,TRUE
+groupby = seriesTitle
 
 
 
@@ -341,9 +359,12 @@ values=tag:value,value,value/tag:value,value/ ...
 You can add any number of such entries.  If the tag(s) you specify do not exist for any particular video, that video will
 not be part of that index. 
 
-As shown above, you can have a sort specification for each of these "virtual shares".  This is optional.  If missing,
-the sort values from config.ini will be used.
+As shown above, you can have a sort, sortdirection, display, or displaysep specification for each of these "virtual shares".
+These are optional.  If missing, the corresponding values from config.ini will be used.
 
-In some cases it is possible for two different tags for the same video to have the same value.  The code is aware of this
-and will not have a duplicate entry.  A message will be printed out during cache creation, but only a single entry will
-result.
+You can Also have a groupby option - this is ANY single metadata tag.   The value of that metadata tag for each matching video
+will be used to create a virtual folder within the virtual share.  In the example above, under "Series", there will be a 
+separate "folder" for each value of seriesTitle - and the videos will appear within this "folder".  Otherwise, ALL of the
+matching videos will show up in a single flat folder.  Any video that does not have the "groupby" metadata tag will be 
+placed into the root folder of that virtual share.  Groupby is probably more useful for the values= type of virtual share,
+but it is also available for tags= shares.

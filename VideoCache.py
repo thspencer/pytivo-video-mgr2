@@ -11,8 +11,8 @@ from VideoShare import VideoShare
 from DVDShare import DVDShare
 from VideoFile import VideoFile
 from VideoDir import VideoDir
+from Meta import MetaHarvester
 from DVDDir import DVDDir
-from Meta import MetaHarvester, MetaList
 import ConfigParser
 import cPickle as pickle
 from Node import Node
@@ -24,14 +24,16 @@ OPTSECT = 'options'
 BUILDINI = 'buildcache.ini'
 NESTLIMIT = 10000
 
+class CacheError(Exception):
+	pass	
+
 def flatten(node, vfl):
 	if node == None:
 		return
 	
 	if (isinstance(node, Node)
 			or isinstance(node, VideoDir)
-			or isinstance(node, DVDDir)
-			or isinstance(node, MetaList)):
+			or isinstance(node, DVDDir)):
 		nvl = []
 		for v in node.getVideoList():
 			i = v.getIndex()
@@ -51,7 +53,7 @@ def flatten(node, vfl):
 		flatten(node.getVideoDir(), vfl)
 
 	else:
-		print "Encountered unknown object type while flattening: ", node
+		raise CacheError("Encountered unknown object type while flattening")
 
 def unflatten(node, vfl):
 	if node == None:
@@ -59,10 +61,12 @@ def unflatten(node, vfl):
 	
 	if (isinstance(node, Node)
 			or isinstance(node, VideoDir)
-			or isinstance(node, DVDDir)
-			or isinstance(node, MetaList)):
+			or isinstance(node, DVDDir)):
 		nvl = []
 		for v in node.getVideoList():
+			if v >= len(vfl):
+				raise CacheError("Video index (%d) greater than video array size (%d)" %(v, len(vfl)))
+			
 			vf = vfl[v]
 			vf.unflatten(node)
 			nvl.append(vf)
@@ -76,7 +80,7 @@ def unflatten(node, vfl):
 		unflatten(node.getVideoDir(), vfl)
 
 	else:
-		print "Encountered unknown object type while unflattening: ", node
+		raise CacheError("Encountered unknown object type while unflattening")
 
 class VideoList:
 	def __init__(self):
@@ -129,6 +133,8 @@ class VideoCache:
 				self.cache, vfl = pickle.load(f)
 				unflatten(self.cache, vfl)
 				self.built = False
+			except CacheError:
+				pass
 			except:
 				print "Error loading video cache - trying to build..."
 				self.build()
@@ -204,6 +210,23 @@ class VideoCache:
 					lopts = self.opts.copy()
 					if bcfg.has_option(section, 'sort'):
 						lopts['sortopt'] = bcfg.get(section,'sort').split()
+					elif bcfg.has_option(section, 'sortdirection'):
+						lval = bcfg.get(section, 'sortdirection').lower()
+						if lval == 'down':
+							lopts['sortup'] = False
+						elif lval == 'up':
+							lopts['sortup'] = True
+						else:
+							print "Error in buildcache.ini - sortdirection must be up or down"
+							
+					elif bcfg.has_option(section, 'display)'):
+						lopts['dispopt'] = bcfg.get(section, 'display').split()
+					elif bcfg.has_option(section, 'displaysep'):
+						lopts['dispsep'] = bcfg.get(section, 'displaysep')
+
+					elif bcfg.has_option(section, 'groupby'):
+						lopts['group'] = bcfg.get(section, 'groupby')					
+					
 					if bcfg.has_option(section, 'tags'):
 						h = MetaHarvester(section, lopts)
 						h.setKeySet(bcfg.get(section,'tags').split())
@@ -270,12 +293,13 @@ class VideoCache:
 
 		for h in sorted(harvesters, cmpHarvesters):
 			title = h.formatDisplayText(None)
-			list = h.getMetaLists()
-			print "%s count: %d" % (title, len(h))
-			if isinstance(list, MetaList):
-				root.addDir(list)
+			nd = h.getNode()
+			vc, gc = h.videoCount()
+			if gc == None:
+				print "%s count: %d videos" % (title, vc)
 			else:
-				root.addDir(Node(title, self.opts, dirList = list))
+				print "%s count: %d videos in %d groups" % (title, vc, gc)
+			root.addDir(nd)
 
 		self.cache = root
 
@@ -291,7 +315,11 @@ class VideoCache:
 		except:
 			print "Error opening video cache file for write"
 		else:
+			try:
 				vfl = []
 				flatten(self.cache, vfl)
 				pickle.dump((self.cache, vfl), f)
+			except CacheError:
+				pass
+			except:
 				f.close()

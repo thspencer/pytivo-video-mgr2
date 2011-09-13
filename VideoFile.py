@@ -4,7 +4,6 @@ Created on Aug 3, 2011
 import os
 
 from DVDDir import DVDDir
-from Meta import MetaList
 
 class VideoFile:
 	def __init__(self, opts, dir, fn, fid):
@@ -25,10 +24,7 @@ class VideoFile:
 
 	def unflatten(self, node):
 		self.index = None
-		if isinstance(node, MetaList):
-			self.metaRef.append(node)
-		else:
-			self.vRef.append(node)
+		self.vRef.append(node)
 
 	def getIndex(self):
 		return self.index
@@ -109,7 +105,7 @@ class VideoFile:
 			for f in fmt:
 				if f in self.meta:
 					if len(result) > 0:
-						result += " : "
+						result += ' ' + self.opts['dispsep'] + ' '
 					data = self.meta[f]
 					if type(data) is list:
 						result += ', '.join(data)
@@ -118,7 +114,7 @@ class VideoFile:
 
 				elif f == 'file':
 					if len(result) > 0:
-						result += " : "
+						result += ' ' + self.opts['dispsep'] + ' '
 					result += self.getFileName()
 			
 		if len(result) == 0:

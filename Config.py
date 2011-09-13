@@ -66,8 +66,10 @@ def load(cfg):
 			'deleteallowed' : True,
 			'thumbjustify' : RSRC_HALIGN_LEFT,
 			'dispopt' : ['title', 'episodeTitle'],
+			'dispsep' : ":",
 			'sortopt' : ['title', 'episodeTitle'],
-			'sortup' : True
+			'sortup' : True,
+			'group' : None
 			}
 
 	if cfg.has_section('vidmgr'):
@@ -134,6 +136,9 @@ def load(cfg):
 			elif opt == 'display':
 				opts['dispopt'] = value.split()
 
+			elif opt == 'displaysep':
+				opts['dispsep'] = value
+
 			elif opt == 'sort':
 				opts['sortopt'] = value.split()
 				
@@ -169,6 +174,9 @@ def addLocalOpts(opts, root, path):
 
 			elif opt == 'display':
 				opts['dispopt'] = value.split()
+
+			elif opt == 'displaysep':
+				opts['dispsep'] = value
 
 			elif opt == 'sortdirection':
 				if lval == 'down':

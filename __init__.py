@@ -366,14 +366,20 @@ class Vidmgr(Application):
 				key = "pytivo" + str(i) + ".port"
 				if cfg.has_option(section, key):
 					port = cfg.get(section, key)
+					
+				key = "pytivo" + str(i) + ".skip"
+				skip = []
+				if cfg.has_option(section, key):
+					sk = cfg.get(section, key).split(",")
+					skip = [s.strip() for s in sk]
 				
-				self.loadPyTivoConfig(cfgfile, ip, port, sep)
+				self.loadPyTivoConfig(cfgfile, ip, port, sep, skip)
 					
 				if port == None:
 					raise ConfigError("Neither main config file nor pytivo config file " + cfgfile + " has port number specified")
 
 	# parse a pytivo config looking for shares				
-	def loadPyTivoConfig(self, cf, ip, defport, sep):
+	def loadPyTivoConfig(self, cf, ip, defport, sep, skip):
 		pyconfig = ConfigParser.ConfigParser()
 		if not pyconfig.read(cf):
 			raise ConfigError("ERROR: pyTivo config file " + cf + " does not exist.")
@@ -382,14 +388,15 @@ class Vidmgr(Application):
 		if pyconfig.has_option('Server', 'port') : port = pyconfig.get('Server', 'port')
 		
 		for section in pyconfig.sections():
-			if (pyconfig.has_option(section, "type")
-					and (pyconfig.get(section, "type") == "video" or pyconfig.get(section, "type") == "dvdvideo")
-					and	pyconfig.has_option(section, 'path')):
-				path = pyconfig.get(section, 'path')
-				self.shares.append({'name' : section,
-						'ip' : ip,
-						'port' : port,
-						'path' : path,
-						'sep' : sep})
+			if not section in skip:
+				if (pyconfig.has_option(section, "type")
+						and (pyconfig.get(section, "type") == "video" or pyconfig.get(section, "type") == "dvdvideo")
+						and	pyconfig.has_option(section, 'path')):
+					path = pyconfig.get(section, 'path')
+					self.shares.append({'name' : section,
+							'ip' : ip,
+							'port' : port,
+							'path' : path,
+							'sep' : sep})
 
 		

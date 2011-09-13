@@ -3,105 +3,9 @@ Created on Aug 4, 2011
 
 @author: Jeff
 '''
-class MetaList:
-	def __init__(self, name, opts):
-		self.name = name
-		self.videoList = []
-		self.dirList = []
-		self.opts = opts.copy()
-		
-	def formatDisplayText(self, fmt):
-		return "%s (%d)" % (self.name, self.__len__())
 
-	def getFullTitle(self):
-		return self.name
-
-	def getName(self):
-		return self.name
-
-	def addVideo(self, vf):
-		nid = vf.getFileID()
-		if nid != None:
-			for v in self.videoList:
-				if nid == v.getFileID():
-					print "Title <%s> is a duplicate for metalist <%s>" % (vf.formatDisplayText(self.opts['dispopt']), self.name)
-					return
-			
-		self.videoList.append(vf)
-		vf.addMetaRef(self)
-		
-	def delVideo(self, vf):
-		nt = vf.formatDisplayText(self.opts['dispopt'])
-		np = vf.getPath()
-		for i in range(len(self.videoList)):
-			v = self.videoList[i]
-			if nt == v.formatDisplayText(self.opts['dispopt']) and np == v.getPath():
-				del self.videoList[i]
-				return
-			
-	def setVideoList(self, vl):
-		self.videoList = [n for n in vl]
-	
-	def getVideoList(self):
-		return self.videoList
-	
-	def getOpts(self):
-		return self.opts
-	
-	def setDirList(self, dl):
-		self.dirList = [n for n in dl]	
-	
-	def getDirList(self):
-		return self.dirList
-
-	def sort(self):
-		def cmpNodes(a, b):
-			ta = a.formatSortText(self.opts['sortopt'])
-			tb = b.formatSortText(self.opts['sortopt'])
-			if (self.opts['sortup']):
-				return cmp(ta, tb)
-			else:
-				return cmp(tb, ta)
-
-		s = sorted(self.videoList, cmpNodes)
-		self.videoList = s
-		s = sorted(self.dirList, cmpNodes)
-		self.dirList = s
-
-	def __iter__(self):
-		self.__dindex__ = 0
-		self.__vindex__ = 0
-		return (self)
-
-	def next(self):
-		if self.__dindex__ < len(self.dirList):
-			i = self.__dindex__
-			self.__dindex__ += 1
-			return self.dirList[i]
-
-		if self.__vindex__ < len(self.videoList):
-			i = self.__vindex__
-			self.__vindex__ += 1
-			return self.videoList[i]
-
-		raise StopIteration
-	
-	def getItem(self, x):
-		if x < len(self.dirList):
-			return self.dirList[x]
-		
-		lx = x - len(self.dirList)
-		if lx < len(self.videoList):
-			return self.videoList[lx]
-		
-		return None
-	
-	def __len__(self):
-		return len(self.dirList) + len(self.videoList)
-
-	def getMeta(self):
-		return {}
-
+from Node import Node
+from Config import ConfigError
 
 HARVEST_KEYSET = 1
 HARVEST_KEYVAL = 2
@@ -110,32 +14,24 @@ class MetaHarvester:
 	def __init__(self, name, opts):
 		self.name = name
 		self.opts = opts.copy()
+		self.root = Node(name, opts)
+		self.nodeMap = {}
+		self.metakeys = []
+		self.metakeydict = {}
+		self.type = None
+		self.count = 0
+		self.gcount = 0
 		
 	def setKeySet(self, metakeys):
 		self.metakeys = [k for k in metakeys]
 		self.type = HARVEST_KEYSET
-		self.mlist = {}
-		self.mkeys = []
 		
 	def setKeyVal(self, metakeydict):
 		self.metakeydict = metakeydict.copy()
 		self.type = HARVEST_KEYVAL
-		self.mlist = MetaList(self.name, self.opts)
 		
 	def formatDisplayText(self, fmt):
 		return self.name
-	
-	def __len__(self):
-		if self.type == HARVEST_KEYSET:
-			return len(self.mkeys)
-		else:
-			return len(self.mlist)
-	
-	def getItem(self, x):
-		if x < len(self.mkeys):
-			return self.mlist[self.mkeys[x]]
-		
-		return None
 	
 	def harvest(self, vf):
 		if self.type == HARVEST_KEYSET:
@@ -144,74 +40,139 @@ class MetaHarvester:
 			self.harvestKEYVAL(vf)
 			
 	def harvestKEYVAL(self, vf):
-		m = vf.getMeta()
+		# get the metadata for the video we are trying to add
+		mvf = vf.getMeta()
+		
+		# now go through our dictionary of matching tags
 		for k in self.metakeydict.keys():
-			if not k in m:
+			# if a tag is NOT in the video, then do not
+			# include that video here
+			if not k in mvf:
 				return
-			
+
+			# otherwise - get the list og values for that
+			# metadata item from our map			
 			l = self.metakeydict[k]
-			if type(m[k]) is list:
+			if type(mvf[k]) is list:
+				# if the metadata item is a list, then
+				# success == the intersection between
+				# the two lists is not empty
 				match = 0
-				for mv in m[k]:
+				for mv in mvf[k]:
 					if mv in l:
 						match += 1
 
 				if match == 0:
+					# no matches here - video does not qualify
 					return
 			else:
-				if not m[k] in l:
+				# otherwise it's not a list - so make
+				# sure our matching value is in the
+				# metadata
+				if not mvf[k] in l:
 					return
 				
-		self.mlist.addVideo(vf)
+		# we passed all checks - so add this video
+		
+		# determine grouping
+		groupTag = self.opts['group']
+		if groupTag == None or groupTag not in mvf:
+			# no grouping - stuff into root node
+			target = self.root
+		else:
+			# get the grouping value
+			grp = mvf[groupTag]
+			if type(grp) is list:
+				raise ConfigError("Configuration Error - grouping item must not be a list")
+
+			if grp in self.nodeMap:
+				# if we've seen this group, then just reuse the 
+				# same node
+				target = self.nodeMap[grp]
+			else:
+				# Otherwise create a new node and link it in
+				target = Node(grp, self.opts)
+				self.nodeMap[grp] = target
+				self.root.addDir(target)
+				self.gcount += 1
+		
+		target.addVideo(vf)
+		self.count += 1
 
 	def harvestKEYSET(self, vf):
-		m = vf.getMeta()
-		for mk in self.metakeys:		
-			if mk in m:
-				if type(m[mk]) is list:
-					for mv in m[mk]:
-						if mv not in self.mlist:
-							self.mkeys.append(mv)
-							self.mlist[mv] = MetaList(mv, self.opts)
-						self.mlist[mv].addVideo(vf)
+		# get the metadata for the video
+		mvf = vf.getMeta()
+		groupTag = self.opts['group']
+		
+		addlist = []
+		
+		# now scan through our list of keys
+		for mk in self.metakeys:	
+			# check if the video even has this key	
+			if mk in mvf:
+				# it does - get the values and build up our worklist
+				if type(mvf[mk]) is list:
+					for mv in mvf[mk]:
+						if mv not in addlist:
+							addlist.append(mv)
 				else:
-					mv = m[mk]
-					if mv not in self.mlist:
-						self.mkeys.append(mv)
-						self.mlist[mv] = MetaList(mv, self.opts)
-					self.mlist[mv].addVideo(vf)
+					mv = mvf[mk]
+					if mv not in addlist:
+						addlist.append(mv)
+					
+				# now go through the worklist and build the structure as we go
+		tally = False
+		for mv in addlist:
+			if groupTag == None or groupTag not in mvf:
+				# no grouping for this share OR video does not have
+				# grouping metadata item
+				if mv not in self.nodeMap:
+					# we've not seen this value yet - create a Node
+					# and link it in
+					target = Node(mv, self.opts)
+					self.nodeMap[mv] = target
+					self.root.addDir(target)
+				else:
+					# otherwise we've seen it so just use it
+					target = self.nodeMap[mv]
+					
+			else:
+				# otherwise we are grouping
+				grp = mvf[groupTag]
+				if type(grp) is list:
+					raise ConfigError ("Configuration Error - grouping item must not be a list")
 
-	def getMetaLists(self):
-		if self.type == HARVEST_KEYSET:
-			return(self.getMetaListsKEYSET())
-		elif self.type == HARVEST_KEYVAL:
-			return(self.getMetaListsKEYVAL())
+				if grp not in self.nodeMap:
+					grpNode = Node(grp, self.opts)
+					self.nodeMap[grp] = grpNode
+					self.root.addDir(grpNode)
+					self.gcount += 1
+				else:
+					grpNode = self.nodeMap[grp]
+					
+				mvkey = grp + "/" + mv
+				if mvkey not in self.nodeMap:
+					target = Node(mvkey, self.opts)
+					self.nodeMap[mvkey] = target
+					grpNode.addDir(target)
+				else:
+					target = self.nodeMap[mvkey]
+					
+			target.addVideo(vf)
+			tally = True
 			
-	def getMetaListsKEYSET(self):
-		self.sort()
-		l = []
-		for mk in self.mkeys:
-			l.append(self.mlist[mk])
+		if tally:
+			self.count += 1
+
+	def getNode(self):
+		self.root.sort()
+		for n in self.nodeMap.keys():
+			self.nodeMap[n].sort()
 			
-		return l
+		return self.root
 	
-	def getMetaListsKEYVAL(self):
-		self.mlist.sort()
-		return self.mlist
-	
-	def sort(self):
-		self.mkeys = sorted(self.mlist.keys())
-		for mk in self.mkeys:
-			self.mlist[mk].sort()
-
-	def __iter__(self):
-		self.__mindex__ = 0
-		return(self)
-
-	def next(self):
-		if self.__mindex__ < len(self.mkeys):
-			i = self.__mindex__
-			self.__mindex__ += 1
-			return self.mlist[self.mkeys[i]]
-	
-		raise StopIteration
+	def videoCount(self):
+		if self.opts['group'] == None:
+			return (self.count, None)
+		else:
+			return (self.count, self.gcount)

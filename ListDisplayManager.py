@@ -5,7 +5,6 @@ from VideoDir import VideoDir
 from VideoShare import VideoShare
 from DVDDir import DVDDir
 from DVDShare import DVDShare
-from Meta import MetaList
 
 from Config import listViewSize, listViewWidth, listYStart, listHeight, listXText, listXIcon, listXCue
 
@@ -130,8 +129,6 @@ class ListDisplayManager:
 			return self.app.myimages.IconDVDFolder
 		if isinstance(item, DVDShare):
 			return self.app.myimages.IconDVDFolder
-		if isinstance(item, MetaList):
-			return None
 
 		return None
 	

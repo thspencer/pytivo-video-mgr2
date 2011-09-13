@@ -24,14 +24,34 @@ class Node:
 		return self.opts
 			
 	def formatDisplayText(self, fmt):
+		return "%s (%d)" % (self.name, self.__len__())
+	
+	def formatSortText(self, fmt):
 		return self.name
 	
 	def getFullTitle(self):
 		return self.name
 	
-	def addVideo(self, node):
-		self.videoList.append(node)
+	def getName(self):
+		return self.name
+	
+	def addVideo(self, vf):
+		vfid = vf.getFileID()
+		for v in self.videoList:
+			if v.getFileID() == vfid:
+				# duplicate file reference - do not add
+				return
+			
+		self.videoList.append(vf)
 		
+	def delVideo(self, vf):
+		vfid = vf.getFileID()
+		for i in range(len(self.videoList)):
+			v = self.videoList[i]
+			if v.getFileID() == vfid:
+				del self.videoList[i]
+				return
+			
 	def setVideoList(self, vl):
 		self.videoList = [n for n in vl]
 	
@@ -47,11 +67,27 @@ class Node:
 	def getDirList(self):
 		return self.dirList
 	
+	def getMeta(self):
+		return {}
+	
+	def sort(self):
+		def cmpNodes(a, b):
+			ta = a.formatSortText(self.opts['sortopt'])
+			tb = b.formatSortText(self.opts['sortopt'])
+			if (self.opts['sortup']):
+				return cmp(ta, tb)
+			else:
+				return cmp(tb, ta)
+
+		s = sorted(self.videoList, cmpNodes)
+		self.videoList = s
+		s = sorted(self.dirList, cmpNodes)
+		self.dirList = s
+
 	def __len__(self):
 		return len(self.videoList) + len(self.dirList)
 	
 	def getItem(self, x):
-		i = x
 		if x < len(self.dirList):
 			return self.dirList[x]
 		
@@ -61,9 +97,6 @@ class Node:
 		
 		return None
 	
-	def getMeta(self):
-		return {}
-		
 	def __iter__(self):
 		self.__index__ = 0
 		return self
