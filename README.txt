@@ -355,6 +355,8 @@ significant (as shown by the actor names above) and if you put spaces around the
 of the matching criteria.  If you have multiple expressions on the same line, the ALL must be satisfied by the matching 
 algorithm in order for a video to be included in the virtual share.  The general syntax is:
 values=tag:value,value,value/tag:value,value/ ...
+
+A special value "values=all" will include EVERY video.  This allows you to do alternate grouping and/or sorting
 		
 You can add any number of such entries.  If the tag(s) you specify do not exist for any particular video, that video will
 not be part of that index. 

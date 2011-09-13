@@ -9,6 +9,7 @@ from Config import ConfigError
 
 HARVEST_KEYSET = 1
 HARVEST_KEYVAL = 2
+HARVEST_ALL = 9
 
 class MetaHarvester:
 	def __init__(self, name, opts):
@@ -30,6 +31,9 @@ class MetaHarvester:
 		self.metakeydict = metakeydict.copy()
 		self.type = HARVEST_KEYVAL
 		
+	def setAll(self):
+		self.type = HARVEST_ALL
+		
 	def formatDisplayText(self, fmt):
 		return self.name
 	
@@ -38,7 +42,36 @@ class MetaHarvester:
 			self.harvestKEYSET(vf)
 		elif self.type == HARVEST_KEYVAL:
 			self.harvestKEYVAL(vf)
+		elif self.type == HARVEST_ALL:
+			self.harvestALL(vf)
 			
+	def harvestALL(self, vf):
+		mvf = vf.getMeta()
+		# determine grouping
+		groupTag = self.opts['group']
+		if groupTag == None or groupTag not in mvf:
+			# no grouping - stuff into root node
+			target = self.root
+		else:
+			# get the grouping value
+			grp = mvf[groupTag]
+			if type(grp) is list:
+				raise ConfigError("Configuration Error - grouping item must not be a list")
+
+			if grp in self.nodeMap:
+				# if we've seen this group, then just reuse the 
+				# same node
+				target = self.nodeMap[grp]
+			else:
+				# Otherwise create a new node and link it in
+				target = Node(grp, self.opts)
+				self.nodeMap[grp] = target
+				self.root.addDir(target)
+				self.gcount += 1
+		
+		target.addVideo(vf)
+		self.count += 1
+
 	def harvestKEYVAL(self, vf):
 		# get the metadata for the video we are trying to add
 		mvf = vf.getMeta()

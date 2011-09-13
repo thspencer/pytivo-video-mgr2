@@ -231,21 +231,28 @@ class VideoCache:
 						h = MetaHarvester(section, lopts)
 						h.setKeySet(bcfg.get(section,'tags').split())
 						harvesters.append(h)
+						
 					elif bcfg.has_option(section, 'values'):
-						terms = bcfg.get(section, 'values').split('/')
-						vdict = {}
-						for t in terms:
-							v = t.split(':')
-							if len(v) != 2:
-								print "Error in buildcache.ini - syntax on values statement in section %s" % section
-								return
-							tag = v[0]
-							vals = v[1].split(',')
-							vdict[tag] = vals
-							
-						h = MetaHarvester(section, lopts)
-						h.setKeyVal(vdict)
-						harvesters.append(h)
+						if bcfg.get(section, 'values').lower() == 'all':
+							h = MetaHarvester(section, lopts)
+							print "setting ALL vshare"
+							h.setAll()
+							harvesters.append(h)
+						else:
+							terms = bcfg.get(section, 'values').split('/')
+							vdict = {}
+							for t in terms:
+								v = t.split(':')
+								if len(v) != 2:
+									print "Error in buildcache.ini - syntax on values statement in section %s" % section
+									return
+								tag = v[0]
+								vals = v[1].split(',')
+								vdict[tag] = vals
+								
+							h = MetaHarvester(section, lopts)
+							h.setKeyVal(vdict)
+							harvesters.append(h)
 
 			if bcfg.has_option(OPTSECT, 'sharepage'):
 				v = bcfg.get(OPTSECT, 'sharepage')
