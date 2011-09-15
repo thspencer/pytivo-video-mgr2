@@ -5,6 +5,7 @@ Created on Aug 3, 2011
 '''
 
 import os
+from Config import TYPE_VIDDIR
 
 class VideoDir:
 	def __init__(self, opts, name, rpath, apath, share):
@@ -17,6 +18,9 @@ class VideoDir:
 		self.videoList = []
 		self.dirList = []
 		self.meta = {}
+		
+	def getObjType(self):
+		return TYPE_VIDDIR
 		
 	def formatDisplayText(self, fmt):
 		return "%s (%d)" % (self.title, self.__len__())

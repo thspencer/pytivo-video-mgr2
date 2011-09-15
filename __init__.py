@@ -11,7 +11,7 @@ from ThumbCache import ThumbCache
 import Config
 from Config import ( screenWidth, screenHeight, titleYPos, subTitleYPos, 
 		MYKEY_PUSHCOMPLETE, MYKEY_DELETECONFIRM, MYKEY_DELETECOMPLETE, MYKEY_DELETECANCEL, MYKEY_REBUILDCACHE,
-		infoWidth, infoHeight, thumbnailheight, thumbnailwidth, thumbcachesize, ConfigError )
+		infoWidth, infoHeight, thumbnailheight, thumbnailwidth, thumbcachesize, ConfigError, TYPE_VIDFILE )
 
 from ListDisplayManager import ListDisplayManager
 from DetailDisplayManager import DetailDisplayManager
@@ -251,7 +251,7 @@ class Vidmgr(Application):
 			self.sound('updown')
 			
 		elif keynum in [KEY_RIGHT, KEY_SELECT]:
-			if isinstance(self.currentItem, VideoFile):
+			if self.currentItem.getObjType() == TYPE_VIDFILE:
 				self.push = Push(self, self.opts, self.currentItem)
 			else:
 				self.SubTitleView.set_text(self.currentItem.getFullTitle(),
@@ -305,7 +305,7 @@ class Vidmgr(Application):
 			self.sound('bonk')
 
 	def deletable(self, item):
-		if not isinstance(item, VideoFile):
+		if item.getObjType() != TYPE_VIDFILE:
 			return False
 		
 		if item.isDeletable():

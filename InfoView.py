@@ -2,7 +2,7 @@ from hme import *
 import re
 from Config import screenHeight, screenWidth, infoHeight, infoWidth
 
-regex = re.compile(r'Title\s*(\d+)')
+regex = re.compile(r'^Title\s*(\d+)$')
 
 metaXlate = { 'title': 'Title',
 			'originalAirDate': 'Original Air Date',

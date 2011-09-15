@@ -153,7 +153,7 @@ class MetaHarvester:
 					if mv not in addlist:
 						addlist.append(mv)
 					
-				# now go through the worklist and build the structure as we go
+		# now go through the worklist and build the structure as we go
 		tally = False
 		for mv in addlist:
 			if groupTag == None or groupTag not in mvf:

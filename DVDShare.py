@@ -2,12 +2,13 @@ from VideoFile import VideoFile
 from VideoDir import VideoDir
 from DVDDir import DVDDir
 from FileID import fileId
+from Config import TYPE_DVDSHARE
 import Config
 import os
 import metadata
 import re
 
-regex = re.compile(r'Title\s*(\d+)')
+regex = re.compile(r'^Title\s*(\d+)$')
 
 class DVDShare:
 	def __init__(self, opts, name, root, vidlist, harvesters):
@@ -84,6 +85,10 @@ class DVDShare:
 					sharedirs[os.path.join(rpath, dir)] = d
 					shareopts[os.path.join(rpath, dir)] = lopts.copy()
 			vdir.sort()
+		
+	def getObjType(self):
+		return TYPE_DVDSHARE
+
 
 	def isDvdDir(self, dir):
 		dvddir = os.path.join(dir, "VIDEO_TS")

@@ -3,6 +3,9 @@ Created on Aug 6, 2011
 
 @author: Jeff
 '''
+
+from Config import TYPE_NODE
+
 class Node:
 	def __init__(self, name, opts, videoList = None, dirList=None):
 		self.name = name
@@ -16,6 +19,9 @@ class Node:
 			self.dirList = []
 		else:
 			self.dirList = dirList
+	
+	def getObjType(self):
+		return TYPE_NODE
 
 	def setOpts(self, opts):
 		self.opts = opts

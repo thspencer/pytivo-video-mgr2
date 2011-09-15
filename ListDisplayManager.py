@@ -6,7 +6,8 @@ from VideoShare import VideoShare
 from DVDDir import DVDDir
 from DVDShare import DVDShare
 
-from Config import listViewSize, listViewWidth, listYStart, listHeight, listXText, listXIcon, listXCue
+from Config import ( listViewSize, listViewWidth, listYStart, listHeight, listXText, listXIcon, listXCue,
+				TYPE_VIDFILE, TYPE_VIDDIR, TYPE_VIDSHARE, TYPE_DVDDIR, TYPE_DVDSHARE )
 
 navkeys = [KEY_UP, KEY_DOWN, KEY_CHANNELUP, KEY_CHANNELDOWN, KEY_REPLAY, KEY_ADVANCE,
 		KEY_NUM0, KEY_NUM1, KEY_NUM2, KEY_NUM3, KEY_NUM4, KEY_NUM5, KEY_NUM6, KEY_NUM7, KEY_NUM8, KEY_NUM9]		
@@ -116,18 +117,19 @@ class ListDisplayManager:
 					self.vwListIcon[i].clear_resource()
 					
 	def getIcon(self, item):
-		if isinstance(item, VideoFile):
+		otype = item.getObjType()
+		if otype == TYPE_VIDFILE:
 			if item.isDVDVideo():
 				return self.app.myimages.IconDVDVideo
 			else:
 				return self.app.myimages.IconVideo
-		if isinstance(item, VideoDir):
+		if otype == TYPE_VIDDIR:
 			return self.app.myimages.IconFolder
-		if isinstance(item, VideoShare):
+		if otype == TYPE_VIDSHARE:
 			return self.app.myimages.IconFolder
-		if isinstance(item, DVDDir):
+		if otype == TYPE_DVDDIR:
 			return self.app.myimages.IconDVDFolder
-		if isinstance(item, DVDShare):
+		if otype == TYPE_DVDSHARE:
 			return self.app.myimages.IconDVDFolder
 
 		return None

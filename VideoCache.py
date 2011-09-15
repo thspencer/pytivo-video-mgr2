@@ -16,7 +16,7 @@ from DVDDir import DVDDir
 import ConfigParser
 import cPickle as pickle
 from Node import Node
-from Config import SHARETYPE_VIDEO, SHARETYPE_DVD
+from Config import SHARETYPE_VIDEO, SHARETYPE_DVD, TYPE_VIDDIR, TYPE_DVDDIR, TYPE_VIDSHARE, TYPE_DVDSHARE, TYPE_NODE
 
 VMSECTION = "vidmgr"
 CACHEFILE = "video.cache"
@@ -31,9 +31,8 @@ def flatten(node, vfl):
 	if node == None:
 		return
 	
-	if (isinstance(node, Node)
-			or isinstance(node, VideoDir)
-			or isinstance(node, DVDDir)):
+	otype = node.getObjType()
+	if otype in [TYPE_VIDDIR, TYPE_DVDDIR, TYPE_NODE]:
 		nvl = []
 		for v in node.getVideoList():
 			i = v.getIndex()
@@ -49,7 +48,7 @@ def flatten(node, vfl):
 		for v in node.getDirList():
 			flatten(v, vfl)
 
-	elif isinstance(node, DVDShare) or isinstance(node, VideoShare):
+	elif otype in [TYPE_VIDSHARE, TYPE_DVDSHARE]:
 		flatten(node.getVideoDir(), vfl)
 
 	else:
@@ -59,9 +58,8 @@ def unflatten(node, vfl):
 	if node == None:
 		return
 	
-	if (isinstance(node, Node)
-			or isinstance(node, VideoDir)
-			or isinstance(node, DVDDir)):
+	otype = node.getObjType()
+	if otype in [TYPE_VIDDIR, TYPE_DVDDIR, TYPE_NODE]:
 		nvl = []
 		for v in node.getVideoList():
 			if v >= len(vfl):
@@ -76,7 +74,7 @@ def unflatten(node, vfl):
 		for v in node.getDirList():
 			unflatten(v, vfl)
 
-	elif isinstance(node, DVDShare) or isinstance(node, VideoShare):
+	elif otype in [TYPE_VIDSHARE, TYPE_DVDSHARE]:
 		unflatten(node.getVideoDir(), vfl)
 
 	else:
@@ -205,6 +203,14 @@ class VideoCache:
 		harvesters = []
 
 		if bcfg.read(fn):
+			if bcfg.has_option(OPTSECT, 'sharepage'):
+				v = bcfg.get(OPTSECT, 'sharepage')
+				if v.lower() == 'false':
+					sharepage = False
+
+			if bcfg.has_option(OPTSECT, 'topsubtitle'):
+				title = bcfg.get(OPTSECT, 'topsubtitle')
+				
 			for section in bcfg.sections():
 				if section != OPTSECT:
 					lopts = self.opts.copy()
@@ -227,12 +233,15 @@ class VideoCache:
 					elif bcfg.has_option(section, 'groupby'):
 						lopts['group'] = bcfg.get(section, 'groupby')					
 					
-					if bcfg.has_option(section, 'tags'):
+					if not(bcfg.has_option(section, 'tags') or bcfg.has_option(section, 'values')):
+						print "Error in buildcache.ini.  Section %s needs tags or values option" % section
+						
+					elif bcfg.has_option(section, 'tags'):
 						h = MetaHarvester(section, lopts)
 						h.setKeySet(bcfg.get(section,'tags').split())
 						harvesters.append(h)
 						
-					elif bcfg.has_option(section, 'values'):
+					else:  # bcfg.has_option(section, 'values'):
 						if bcfg.get(section, 'values').lower() == 'all':
 							h = MetaHarvester(section, lopts)
 							print "setting ALL vshare"
@@ -253,15 +262,6 @@ class VideoCache:
 							h = MetaHarvester(section, lopts)
 							h.setKeyVal(vdict)
 							harvesters.append(h)
-
-			if bcfg.has_option(OPTSECT, 'sharepage'):
-				v = bcfg.get(OPTSECT, 'sharepage')
-				if v.lower() == 'false':
-					sharepage = False
-
-			if bcfg.has_option(OPTSECT, 'topsubtitle'):
-				title = bcfg.get(OPTSECT, 'topsubtitle')
-
 
 		sl = self.loadShares()
 		if len(sl) == 0:

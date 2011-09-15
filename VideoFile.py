@@ -4,6 +4,7 @@ Created on Aug 3, 2011
 import os
 
 from DVDDir import DVDDir
+from Config import TYPE_VIDFILE, TYPE_DVDDIR
 
 class VideoFile:
 	def __init__(self, opts, dir, fn, fid):
@@ -16,6 +17,9 @@ class VideoFile:
 		self.meta = {}
 		self.metaRef = []
 		self.index = None
+		
+	def getObjType(self):
+		return TYPE_VIDFILE
 	
 	def flatten(self, index):
 		self.index = index
@@ -56,8 +60,8 @@ class VideoFile:
 	
 	def isDVDVideo(self):
 		for d in self.vRef:
-			rc = isinstance(d, DVDDir)
-			if rc: return True
+			if d.getObjType() == TYPE_DVDDIR:
+				return True
 
 		return False
 	

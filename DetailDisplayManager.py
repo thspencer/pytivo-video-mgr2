@@ -6,7 +6,8 @@ import os
 
 from Config import ( detailViewXPos, detailViewWidth, detailDescHeight,
 					detailDescWidth, detailDescXPos, detailDescYPos,
-					thumbnailwidth, thumbnailheight, thumbnailxpos, thumbnailypos )
+					thumbnailwidth, thumbnailheight, thumbnailxpos, thumbnailypos,
+					TYPE_VIDFILE, TYPE_DVDDIR, TYPE_VIDDIR )
 
 class DetailDisplayManager:
 	def __init__(self, app, opts, tc):
@@ -38,7 +39,8 @@ class DetailDisplayManager:
 		else:
 			self.vwDetailDescription.set_text("")
 			
-		if isinstance(item, VideoFile):
+		otype = item.getObjType()
+		if otype == TYPE_VIDFILE:
 			p = item.getPath()
 			fn = item.getFileName()
 			mapkey = p + ':' + fn
@@ -54,12 +56,12 @@ class DetailDisplayManager:
 			else:
 				self.vwDetailThumb.clear_resource()
 				
-		elif isinstance(item, VideoDir) or isinstance(item, DVDDir):
+		elif otype in [TYPE_VIDDIR, TYPE_DVDDIR]:
 			mapkey = item.getFullPath()
 			if mapkey in self.imagemap:
 				thumb = self.imagemap[mapkey]
 			else:
-				thumb = self.getDirThumb(mapkey, isinstance(item, DVDDir))
+				thumb = self.getDirThumb(mapkey, otype == TYPE_DVDDIR)
 				if thumb:
 					self.imagemap[mapkey] = thumb
 					
@@ -72,26 +74,36 @@ class DetailDisplayManager:
 
 	def getThumb(self, dir, name, isDVD):
 		thumb = None
-		defName = "folder.jpg"
-		if isDVD: defName = "default.jpg"
-		for tfn in [ os.path.join(dir, name + '.jpg'),
-				os.path.join(dir, '.meta', name + '.jpg'),
-				os.path.join(dir, defName),
-				os.path.join(dir, '.meta', defName) ]:
+		names = []
+		names.append(os.path.join(dir, name + '.jpg'))
+		names.append(os.path.join(dir, '.meta', name + '.jpg'))
+		names.append(os.path.join(dir, 'folder.jpg'))
+		names.append(os.path.join(dir, '.meta', 'folder.jpg'))
+		if isDVD: 
+			names.append(os.path.join(dir, 'default.jpg'))
+			names.append(os.path.join(dir, '.meta', 'default.jpg'))
+			
+		for tfn in names:
 			data = self.tc.getImageData(tfn)
 			if data:
 				thumb = Image(self.app, tfn, data=data)
 				break
+			
 		return thumb
 	
 	def getDirThumb(self, dir, isDVD):
 		thumb = None
-		defName = "folder.jpg"
-		if isDVD: defName = "default.jpg"
-		for tfn in [ os.path.join(dir, defName),
-				os.path.join(dir, '.meta', defName) ]:
+		names = []
+		names.append(os.path.join(dir, 'folder.jpg'))
+		names.append(os.path.join(dir, '.meta', 'folder.jpg'))
+		if isDVD: 
+			names.append(os.path.join(dir, 'default.jpg'))
+			names.append(os.path.join(dir, '.meta', 'default.jpg'))
+			
+		for tfn in names:
 			data = self.tc.getImageData(tfn)
 			if data:
 				thumb = Image(self.app, tfn, data=data)
 				break
+			
 		return thumb

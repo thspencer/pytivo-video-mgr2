@@ -5,6 +5,7 @@ Created on Aug 3, 2011
 '''
 from VideoFile import VideoFile
 from VideoDir import VideoDir
+from Config import TYPE_VIDSHARE
 import Config
 import os
 import metadata
@@ -70,8 +71,10 @@ class VideoShare:
 					vl.addVideo(vf)
 					self.count += 1
 			vl.sort()
+			
+	def getObjType(self):
+		return TYPE_VIDSHARE
 						
-
 	def __iter__(self):
 		return self.videoDir.__iter__()
 	
