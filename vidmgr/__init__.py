@@ -24,7 +24,7 @@ from Push import Push
 from MessageBox import MessageBox
 
 TITLE = 'PyTivo Video Manager'
-version = '2.0'
+version = '2.0a'
 
 print asctime(), TITLE + " version " + version + " starting"
 
@@ -91,13 +91,13 @@ class Vidmgr(Application):
 		self.vwInfo = None
 		config = Config.Config()
 		self.opts = config.load()
-		cp = config.getConfigParser()
+		self.cp = config.getConfigParser()
 					
 		# get the tivo information out of the startup config file.  For each tivo, we need to know:
 		# tivox.name - the user friendly name and
 		# tivox.tsn - the TSN
 		# these fields all go into a section named [tivos]		
-		self.loadTivos(cp)
+		self.loadTivos(self.cp)
 		if len(self.tivos) == 0:
 			raise ConfigError("No Tivos found - exiting")
 
@@ -108,7 +108,7 @@ class Vidmgr(Application):
 		# also, if the pytivo port number is not specified in the pytivo config file, you must have
 		# pytivox.port - the port number
 		self.shares = []		
-		self.loadShares(cp)
+		self.loadShares(self.cp)
 		if len(self.shares) == 0:
 			raise ConfigError("No shares found - exiting")
 		
@@ -127,7 +127,7 @@ class Vidmgr(Application):
 		self.msgbox = None
 		self.rebuildingCache = False
 		
-		self.vc = VideoCache(self.opts, self.context.server.config)
+		self.vc = VideoCache(self.opts, self.cp)
 		
 		self.root.set_resource(self.myimages.Background)
 		self.TitleView = View(self, height=30, width=screenWidth, ypos=titleYPos)
