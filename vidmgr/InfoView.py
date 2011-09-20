@@ -77,6 +77,8 @@ class InfoView(View):
 		self.clear()
 	
 	def show(self):
+		self.clear_resource()
+		self.set_resource(self.app.myimages.Info)
 		self.isVisible = True
 		self.set_visible(True)
 		

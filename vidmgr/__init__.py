@@ -41,12 +41,10 @@ class Images:
 		self.HiLite        = self.loadimage(app, 'hilite')
 		self.SubMenu       = self.loadimage(app, 'submenu')
 		self.MenuHiLite    = self.loadimage(app, 'menuhilite')
-		self.MenuBkg       = self.loadimage(app, 'menubkg')
 		self.IconFolder    = self.loadimage(app, 'folder')
 		self.IconVideo     = self.loadimage(app, 'video')
 		self.IconDVDFolder = self.loadimage(app, 'dvdfolder')
 		self.IconDVDVideo  = self.loadimage(app, 'dvdvideo')
-		self.PleaseWait    = self.loadimage(app, 'pleasewait')
 		self.Info          = self.loadimage(app, 'info')
 		self.InfoUp        = self.loadimage(app, 'infoup')
 		self.InfoDown      = self.loadimage(app, 'infodown')
@@ -91,14 +89,15 @@ class Vidmgr(Application):
 	
 	def startup(self):
 		self.vwInfo = None
-		config = self.context.server.config
-		self.opts = Config.load(config)
+		config = Config.Config()
+		self.opts = config.load()
+		cp = config.getConfigParser()
 					
 		# get the tivo information out of the startup config file.  For each tivo, we need to know:
 		# tivox.name - the user friendly name and
 		# tivox.tsn - the TSN
 		# these fields all go into a section named [tivos]		
-		self.loadTivos(config)
+		self.loadTivos(cp)
 		if len(self.tivos) == 0:
 			raise ConfigError("No Tivos found - exiting")
 
@@ -109,7 +108,7 @@ class Vidmgr(Application):
 		# also, if the pytivo port number is not specified in the pytivo config file, you must have
 		# pytivox.port - the port number
 		self.shares = []		
-		self.loadShares(config)
+		self.loadShares(cp)
 		if len(self.shares) == 0:
 			raise ConfigError("No shares found - exiting")
 		

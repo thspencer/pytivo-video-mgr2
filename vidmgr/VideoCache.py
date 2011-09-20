@@ -16,12 +16,10 @@ from DVDDir import DVDDir
 import ConfigParser
 import cPickle as pickle
 from Node import Node
-from Config import SHARETYPE_VIDEO, SHARETYPE_DVD, TYPE_VIDDIR, TYPE_DVDDIR, TYPE_VIDSHARE, TYPE_DVDSHARE, TYPE_NODE
+from Config import ConfigError, SHARETYPE_VIDEO, SHARETYPE_DVD, TYPE_VIDDIR, TYPE_DVDDIR, TYPE_VIDSHARE, TYPE_DVDSHARE, TYPE_NODE
 
-VMSECTION = "vidmgr"
 CACHEFILE = "video.cache"
-OPTSECT = 'options'
-BUILDINI = 'buildcache.ini'
+OPTSECT = 'vidmgr'
 NESTLIMIT = 10000
 
 class CacheError(Exception):
@@ -132,7 +130,7 @@ class VideoCache:
 				unflatten(self.cache, vfl)
 				self.built = False
 			except CacheError:
-				pass
+				raise
 			except:
 				print "Error loading video cache - trying to build..."
 				self.build()
@@ -170,8 +168,7 @@ class VideoCache:
 		shares = []
 		pyconfig = ConfigParser.ConfigParser()
 		if not pyconfig.read(cf):
-			print "ERROR: pyTivo config file " + cf + " does not exist."
-			return shares
+			raise ConfigError("ERROR: pyTivo config file " + cf + " does not exist.")
 
 		for section in pyconfig.sections():
 			if not section in skip:
@@ -193,81 +190,73 @@ class VideoCache:
 			tb = b.formatDisplayText(None)
 			return cmp(ta, tb)
 		
-		p = os.path.dirname(__file__)
-		fn = os.path.join(p, BUILDINI)
-		bcfg = ConfigParser.ConfigParser()
-		
 		title = "Main Menu"
 		sharepage = True
 
 		harvesters = []
 
-		if bcfg.read(fn):
-			if bcfg.has_option(OPTSECT, 'sharepage'):
-				v = bcfg.get(OPTSECT, 'sharepage')
-				if v.lower() == 'false':
-					sharepage = False
+		if self.cfg.has_option(OPTSECT, 'sharepage'):
+			v = self.cfg.get(OPTSECT, 'sharepage')
+			if v.lower() == 'false':
+				sharepage = False
 
-			if bcfg.has_option(OPTSECT, 'topsubtitle'):
-				title = bcfg.get(OPTSECT, 'topsubtitle')
+		if self.cfg.has_option(OPTSECT, 'topsubtitle'):
+			title = self.cfg.get(OPTSECT, 'topsubtitle')
+			
+		for section in self.cfg.sections():
+			if section not in [OPTSECT, 'tivos', 'pytivos']:
+				lopts = self.opts.copy()
+				if self.cfg.has_option(section, 'sort'):
+					lopts['sortopt'] = self.cfg.get(section,'sort').split()
+				elif self.cfg.has_option(section, 'sortdirection'):
+					lval = self.cfg.get(section, 'sortdirection').lower()
+					if lval == 'down':
+						lopts['sortup'] = False
+					elif lval == 'up':
+						lopts['sortup'] = True
+					else:
+						raise ConfigError("Error in buildcache.ini - sortdirection must be up or down")
+						
+				elif self.cfg.has_option(section, 'display)'):
+					lopts['dispopt'] = self.cfg.get(section, 'display').split()
+				elif self.cfg.has_option(section, 'displaysep'):
+					lopts['dispsep'] = self.cfg.get(section, 'displaysep')
+
+				elif self.cfg.has_option(section, 'groupby'):
+					lopts['group'] = self.cfg.get(section, 'groupby')					
 				
-			for section in bcfg.sections():
-				if section != OPTSECT:
-					lopts = self.opts.copy()
-					if bcfg.has_option(section, 'sort'):
-						lopts['sortopt'] = bcfg.get(section,'sort').split()
-					elif bcfg.has_option(section, 'sortdirection'):
-						lval = bcfg.get(section, 'sortdirection').lower()
-						if lval == 'down':
-							lopts['sortup'] = False
-						elif lval == 'up':
-							lopts['sortup'] = True
-						else:
-							print "Error in buildcache.ini - sortdirection must be up or down"
-							
-					elif bcfg.has_option(section, 'display)'):
-						lopts['dispopt'] = bcfg.get(section, 'display').split()
-					elif bcfg.has_option(section, 'displaysep'):
-						lopts['dispsep'] = bcfg.get(section, 'displaysep')
-
-					elif bcfg.has_option(section, 'groupby'):
-						lopts['group'] = bcfg.get(section, 'groupby')					
+				if not(self.cfg.has_option(section, 'tags') or self.cfg.has_option(section, 'values')):
+					raise ConfigError("Error in ini file.  Section %s needs tags or values option" % section)
 					
-					if not(bcfg.has_option(section, 'tags') or bcfg.has_option(section, 'values')):
-						print "Error in buildcache.ini.  Section %s needs tags or values option" % section
-						
-					elif bcfg.has_option(section, 'tags'):
+				elif self.cfg.has_option(section, 'tags'):
+					h = MetaHarvester(section, lopts)
+					h.setKeySet(self.cfg.get(section,'tags').split())
+					harvesters.append(h)
+					
+				else:  # self.cfg.has_option(section, 'values'):
+					if self.cfg.get(section, 'values').lower() == 'all':
 						h = MetaHarvester(section, lopts)
-						h.setKeySet(bcfg.get(section,'tags').split())
+						h.setAll()
 						harvesters.append(h)
-						
-					else:  # bcfg.has_option(section, 'values'):
-						if bcfg.get(section, 'values').lower() == 'all':
-							h = MetaHarvester(section, lopts)
-							print "setting ALL vshare"
-							h.setAll()
-							harvesters.append(h)
-						else:
-							terms = bcfg.get(section, 'values').split('/')
-							vdict = {}
-							for t in terms:
-								v = t.split(':')
-								if len(v) != 2:
-									print "Error in buildcache.ini - syntax on values statement in section %s" % section
-									return
-								tag = v[0]
-								vals = v[1].split(',')
-								vdict[tag] = vals
-								
-							h = MetaHarvester(section, lopts)
-							h.setKeyVal(vdict)
-							harvesters.append(h)
+					else:
+						terms = self.cfg.get(section, 'values').split('/')
+						vdict = {}
+						for t in terms:
+							v = t.split(':')
+							if len(v) != 2:
+								raise ConfigError("Error in ini file - syntax on values statement in section %s" % section)
+
+							tag = v[0]
+							vals = v[1].split(',')
+							vdict[tag] = vals
+							
+						h = MetaHarvester(section, lopts)
+						h.setKeyVal(vdict)
+						harvesters.append(h)
 
 		sl = self.loadShares()
 		if len(sl) == 0:
-			print "Error - no shares are defined"
-			self.cache = None
-			return
+			raise ConfigError("Error - no shares are defined")
 
 		root = Node(title, self.opts)
 

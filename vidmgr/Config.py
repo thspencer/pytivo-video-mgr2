@@ -55,112 +55,126 @@ TYPE_DVDSHARE = 4
 TYPE_NODE = 5
 
 class ConfigError(Exception):
-	pass	
+	pass
 
-def load(cfg):
-	opts = {
-			'goodexts' : ['.mp4', '.mpg', '.avi', '.wmv'],
-			'metaignore' : ['isEpisode', 'isEpisodic'],
-			'metafirst' : ['title', 'seriesTitle', 'episodeTitle', 'description' ],
-			'metaspacebefore' : [],
-			'metaspaceafter' : [],
-			'metamergefiles' : True,
-			'metamergelines' : False,
-			'infolabelpercent' : 30,
-			'inforightmargin' : 20,
-			'descsize' : 20,
-			'skin' : None,
-			'deleteallowed' : True,
-			'thumbjustify' : RSRC_HALIGN_LEFT,
-			'dispopt' : ['title', 'episodeTitle'],
-			'dispsep' : ":",
-			'sortopt' : ['title', 'episodeTitle'],
-			'sortup' : True,
-			'group' : None
-			}
+class Config:
+	def __init__(self):
+		fn = os.path.join(os.path.dirname(__file__), "vidmgr.ini")
 
-	if cfg.has_section('vidmgr'):
-		for opt, value in cfg.items('vidmgr'):
-			lval = value.lower()
-			# options for metadata on the info screen
-			if opt == 'exts':
-				opts['goodexts'] = value.split()
+		self.cfg = ConfigParser.ConfigParser()
+		if not self.cfg.read(fn):
+			raise ConfigError("ERROR: vidmgr configuration file does not exist.")
 
-			elif opt == 'metaignore':
-				opts['metaignore'] = value.split()
-
-			elif opt == 'metafirst':
-				opts['metafirst'] = value.split()
-
-			elif opt == 'metaspacebefore':
-				opts['metaspacebefore'] = value.split()
-			
-			elif opt == 'metaspace' or opt == 'metaspaceafter':
-				opts['metaspaceafter'] = value.split()
-
-			elif opt == 'metamergefiles':
-				if lval == "false":
-					opts['metamergefiles'] = False
-			
-			elif opt == 'metamergelines':
-				if lval == "true":
-					opts['metamergelines'] = True
-			
-			elif opt == 'infolabelpercent':
-				n = int(value)
-				if n < 0 or n > 70:
-					raise ConfigError("Config error - infolabelpercent value out of bounds (0-70)")
-				else:
-					opts['infolabelpercent'] = n
-
-			elif opt == 'inforightmargin':
-				n = int(value)
-				if n < 0 or n > 100:
-					raise ConfigError("Config error - inforightmargin value out of bounds (0-100)")
-				else:
-					opts['inforightmargin'] = n
-			
-			elif opt == 'descsize':
-				opts['descsize'] = int(value)
-
-			elif opt == 'skin':
-				opts['skin'] = value
-
-			elif opt == 'deleteallowed':
-				if lval == "false":
-					opts['deleteallowed'] = False
-
-			elif opt == 'thumbjustify':
-				if lval == 'center':
-					opts['thumbjustify'] = RSRC_HALIGN_CENTER
-				elif lval == 'right':
-					opts['thumbjustify'] = RSRC_HALIGN_RIGHT
-				elif lval == 'left':
-					opts['thumbjustify'] = RSRC_HALIGN_LEFT
-				else:
-					raise ConfigError("Config error - invalid value for thumbjustify (left, center, right)")
-
-			elif opt == 'display':
-				opts['dispopt'] = value.split()
-
-			elif opt == 'displaysep':
-				opts['dispsep'] = value
-
-			elif opt == 'sort':
-				opts['sortopt'] = value.split()
+	def getConfigParser(self):
+		return self.cfg
+	
+	def load(self):
+		opts = {
+				'goodexts' : ['.mp4', '.mpg', '.avi', '.wmv'],
+				'metaignore' : ['isEpisode', 'isEpisodic'],
+				'metafirst' : ['title', 'seriesTitle', 'episodeTitle', 'description' ],
+				'metaspacebefore' : [],
+				'metaspaceafter' : [],
+				'metamergefiles' : True,
+				'metamergelines' : False,
+				'infolabelpercent' : 30,
+				'inforightmargin' : 20,
+				'descsize' : 20,
+				'skin' : None,
+				'deleteallowed' : True,
+				'thumbjustify' : RSRC_HALIGN_LEFT,
+				'dispopt' : ['title', 'episodeTitle'],
+				'dispsep' : ":",
+				'sortopt' : ['title', 'episodeTitle'],
+				'sortup' : True,
+				'group' : None
+				}
+	
+		if self.cfg.has_section('vidmgr'):
+			for opt, value in self.cfg.items('vidmgr'):
+				lval = value.lower()
+				# options for metadata on the info screen
+				if opt == 'exts':
+					opts['goodexts'] = value.split()
+	
+				elif opt == 'metaignore':
+					opts['metaignore'] = value.split()
+	
+				elif opt == 'metafirst':
+					opts['metafirst'] = value.split()
+	
+				elif opt == 'metaspacebefore':
+					opts['metaspacebefore'] = value.split()
 				
-			elif opt == 'sortdirection':
-				if lval == 'down':
-					opts['sortup'] = False
-				elif lval == 'up':
-					opts['sortup'] = True
+				elif opt == 'metaspace' or opt == 'metaspaceafter':
+					opts['metaspaceafter'] = value.split()
+	
+				elif opt == 'metamergefiles':
+					if lval == "false":
+						opts['metamergefiles'] = False
+				
+				elif opt == 'metamergelines':
+					if lval == "true":
+						opts['metamergelines'] = True
+				
+				elif opt == 'infolabelpercent':
+					n = int(value)
+					if n < 0 or n > 70:
+						raise ConfigError("Config error - infolabelpercent value out of bounds (0-70)")
+					else:
+						opts['infolabelpercent'] = n
+	
+				elif opt == 'inforightmargin':
+					n = int(value)
+					if n < 0 or n > 100:
+						raise ConfigError("Config error - inforightmargin value out of bounds (0-100)")
+					else:
+						opts['inforightmargin'] = n
+				
+				elif opt == 'descsize':
+					opts['descsize'] = int(value)
+	
+				elif opt == 'skin':
+					opts['skin'] = value
+	
+				elif opt == 'deleteallowed':
+					if lval == "false":
+						opts['deleteallowed'] = False
+	
+				elif opt == 'thumbjustify':
+					if lval == 'center':
+						opts['thumbjustify'] = RSRC_HALIGN_CENTER
+					elif lval == 'right':
+						opts['thumbjustify'] = RSRC_HALIGN_RIGHT
+					elif lval == 'left':
+						opts['thumbjustify'] = RSRC_HALIGN_LEFT
+					else:
+						raise ConfigError("Config error - invalid value for thumbjustify (left, center, right)")
+	
+				elif opt == 'display':
+					opts['dispopt'] = value.split()
+	
+				elif opt == 'displaysep':
+					opts['dispsep'] = value
+	
+				elif opt == 'sort':
+					opts['sortopt'] = value.split()
+					
+				elif opt == 'sortdirection':
+					if lval == 'down':
+						opts['sortup'] = False
+					elif lval == 'up':
+						opts['sortup'] = True
+					else:
+						raise ConfigError("Config error - sortdirection must be up or down")
+	
+				elif opt in ['sharepage', 'topsubtitle']:
+					pass # these are handled by cache building logic
+				
 				else:
-					raise ConfigError("Config error - sortdirection must be up or down")
-
-			else:
-				raise ConfigError("Config error - unknown option (%s)" % opt)
-
-	return opts
+					raise ConfigError("Config error - unknown option (%s)" % opt)
+	
+		return opts
 
 def addLocalOpts(opts, root, path):
 	cfgfn = os.path.join(root, path, ".vidmgr.ini")

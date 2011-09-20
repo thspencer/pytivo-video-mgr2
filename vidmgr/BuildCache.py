@@ -7,19 +7,12 @@ import sys
 sys.path.append('..')
 
 from VideoCache import VideoCache
-import ConfigParser
-import os
 import Config
 
-fn = os.path.join("..", "config.ini")
+cfg = Config.Config()
+opts = cfg.load()
+cp = cfg.getConfigParser()
 
-hmeconfig = ConfigParser.ConfigParser()
-if not hmeconfig.read(fn):
-	print "ERROR: HME configuration file does not exist."
-	exit(1) 
-
-opts = Config.load(hmeconfig)
-
-c = VideoCache(opts, hmeconfig)
+c = VideoCache(opts, cp)
 c.build()
 c.save(True)

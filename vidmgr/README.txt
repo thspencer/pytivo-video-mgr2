@@ -1,4 +1,4 @@
-PyTivo Video Manager - Version 2.0- README.txt
+PyTivo Video Manager - Version 2.0  README.txt
 
 see changelog.txt for a history of changes
 
@@ -17,16 +17,16 @@ improvements that will be visible to users:
 	1.) The video information is obtained from a cache instead of being read from the disk.  The cache
 	    can be built when the program starts up, or ahead of time - at your choice.  The advantage of
 	    building the cache ahead of time is that you can get more complex in terms of the way the 
-	    cache is built.  The cache supports the ability to search through your videos with any meta data
-	    item YOU deem is significant.  As packaged, the cache builds an index based on actors and genre,
-	    but if you want to add directors, etc, you can easily do so.  You can even create an index for all
-	    videos that have "John Wayne" in them.  It's even possible to build a complex cache at thread start
-	    time if you are willing to tolerate a small delay.  My small ARM-based NAS builds my cache containing
-	    ~400 videos, including the meta data indexes I mentioned above, in less than 5 seconds.
+	    cache is built (you can still build a complex cache at thread start time if you are willing to
+	    tolerate a delay - my ARM based NAS builds the cache for my 400 video library in about 5 seconds.
+	    The cache supports the ability to create "virtual" shares that are based on metadata, including any
+	    metadata that you may have added yourself.  So, for example, you can create a "virtual" share for
+	    John Wayne movies, or you can have a virtual share that breaks the videos down my genre.
 	    
-	2.) You now have the ability to change options on a directory by directory basis.  You want this
-	    directory sorted on episode number and that one sorted on show title - no problem.  sorting can now
-	    be done based on ANY combinations of strings from the metadata
+	2.) You now have the ability to change options on a directory by directory (or virtual share) basis.
+	    You want this  directory sorted on episode number and that one sorted on show title - no problem.
+	    Sorting can now be done based on ANY combinations of strings from the metadata.  You can also control
+	    the display "name" for a video file based on the directory (or virtual share).
 	    
     3.) the user interface was cleaned up - there is no longer a menu choice for push/delete.  Pushing is
         accomplished by pressing the select button - if you have multiple tivos a dialog box will pop-up
@@ -53,177 +53,56 @@ fork of pytivo.  I am not familiar with the other forks to know whether or not i
 installation/setup
 ==================
 
-First a caveat: I have had difficulties getting this to run under python 2.6 on Linux.  2.5 is just fine.  I'm
-not sure what the cause is yet, but until this is determined, I would recommend that you use 2.5.  I have
-no empirical data yet for later releases or for versions under windows.
-
 If you've gotten this far, you must want to install this.  It's very simple:
 
 1. Go to the directory where you have pyhme installed.  There should be a lot of subdirectories here,
 one per application.  Create a new directory here named "vidmgr"
 
 2. Copy the contents of the vidmgr directory tree from this package into this new directory.  This should
-include several .py files and a directory named skins.  Within the skins directory, there will be a
-collection of .png files.   
+include several .py files, a .png file, 2 .dist files, README.txt, and a directory named skins.  Within the
+skins directory, there will be a collection of .png files.   
 
-3. Copy config.merge from this package into the pyhme main directory.   
+3. Configure - you will need to add vidmgr to the list of applications that are launched by pyhme.  See
+the pyhme documentation for how to do this.   You will also need to set up your vidmgr.ini file (in the vidmgr
+directory) and the .vidmgr.ini files in the various video directories as you wish.
 
-4. Configure - you will need to merge the config.merge file that was delivered with this package with
-your config.ini file that you are currently using.  If you have a config.ini from a previous version
-of vidmgr, there are impacts to the skin, sort, and display options.  Also, there are several new options as
-well as options on where to place additional config files.
+Note - this is a difference from vidmgr 1.0.  vidmgr no longer uses the pyhme config.ini file to hold
+its configuration information.  Instead everything goes into vidmgr.ini and the satellite .vidmgr.ini files.
+Contained with the distribution is a vidmgr.ini.dist file.  This file is heavily documented with all of
+the possible options and their default and possible values.  Follow the directions in this file.
 
-There are four areas you need to pay attention to when editing config.ini:  
+The distribution also contains a .vidmgr.ini.dist file.  This is a satellite file - it goes directly in
+the directory structure where you store your video files.  These files can be used to change certain
+options for that directory and the directories below it.  Please see the .dist file for a complete list
+of the allowed options and values.
 
-	a) You may or may not have an "apps" line under the heading [hmeserver].  If you do not, then
-the hmeserver will start all apps that it finds.  If you do, then it will only start the named apps.
-So if you do have this line and you do want to run vidmgr, add the word "vidmgr" to this line - no quotes
-or commas or other punctuation.
+=======================================================================================================
 
-	b) you can specify various vidmgr options by putting entries in the [vidmgr] section of the config.ini
-as follows:
+Moving from Version 1 to Version 2
+==================================
 
-[vidmgr]
-exts=.mpg .mp4 .avi .wmv .m4v
+To move from version 1 to version 2, the basic instruction is to just start new.  There ARE a few
+files that can move straight from 1 to 2 though:
 
-   this names the file extensions you are interested in
-      
-descsize=20
-   this gives the font point size that will be used for the description text.  20 is the default
-   
-skin=name
-   this is the name of the directory under skins that contains all of the png files that are used
-   to draw the screen.  default is None.  If you want to create your own skin, create a directory
-   under skins, and put whatever png files you are changing there.  Be careful to retain the same
-   image size.  The files that you do NOT provide will be obtained from the skins directory, so you
-   do not need to duplicate any files you are not changing.
-   
-deleteallowed=true
-   this determines whether or not deletion of videos is permitted.  Default is true, set to false
-   if you do not want this capability,  Deletes are never allowed for DVD Video shares
-   
-sort=value
-   determines how listings are sorted.  This is simply a list of metadata tags upon which the sort
-   is to be based.  All of the specified fields are concatenated together (with a : in between) in the
-   specified order to build the sort key.  If a particular video contains no matching metadata items,
-   the sort key defaults to the title metadata item.  If there it no title, the file name is used.
-   In addition to any of the metadata tags, including any YOU might create yourself, the following
-   special tags are allowed: file - indicates the file name, and titleNumber - indicates the title
-   number for DVD titles.  The default value for sort is "title episodeTitle"
-  
-sortdirection=up
-   specifies whether sorts should be ascending (up - the default value) or descending (down)
+1) thumbs.cache - this is the cache file for video artwork.  If you move this into the version 2
+directory, you save yourself from having to regenerate it, but since it is regenerated on the
+fly, there is no great benefit to moving it.  It's really up to you.
 
-display=value
-   determines what metadata is used for display on the TV.  This is simply a list of metadata tags
-   that are contatenated together (with separator in between - see below).  If a video contains no matching items,
-   then the title metadata item is used.  If there is no title, then the file name is used.  "file"
-   and "titleNumber" and any user-defined tags are available here as they are for the sort value above. 
-  
-displaysep=string
-   string to use as the separator when concatenating metadata items above.  Default is " : "
+2) skins - version 1.0 had ALL png files - even the standard ones, under a subdirectory in the skins
+directory.  The new approach is to have the default png files directly in the skins directory, and then
+to have subdirectories below this point contain user skins.  By default, the value of skin is set to 
+None, but if you set it to the name of a subdirectory, vidmgr will look in thei subdirectory FIRST
+before it then looks directly in the skins directory.  This means that you do NOT need to copy
+png files that you are NOT changing.  Also note - this version of vidmgr is for HD only.  As such,
+files with HD in their names no longer need this - remove the HD.  This means, of course, that the
+name will conflict with the SD file name, but you no longer need the SD name.
 
-metafirst = title seriesTitle episodeTitle description
-metaignore = isEpisode isEpisodic
-   these two items determine which metadata is displayed first in the info screen and which is ignored. 
-   Spelling and case are significant - the name must match exactly.  The default values are those
-   values given above
-metaspace = name name
-metaspaceafter = name name
-metaspacebefore = name name
-   determines that there should be a blank line in the display before or after the indicated metadata items.  The
-   default is an empty list so there will be no blank lines.  metaspace and metaspaceafter are synonyms
-metamergefiles = False or True (default = True)
-metamergelines = False or True (default = False)
-   If there are multiple metafiles that correspond to a video file, these two options control how the data is to be merged.
-   metamergefiles = False indicates that the files are not to be merged at all - only the more specific file is to be used.
-   If metamergefiles if True, the default value, data from the less specific files is over-written/replaced with data from more
-   specific files depending on the value for metamergelines.  If metamergelines is False (the default) then a repeating metadata
-   key will REPLACE any previous value read.  If it is true, the new data will be concatenated to the old value separated
-   by a space.  Note that metamergelines has NO effect on metadata items that start with a 'v' (vActor, etc).  These data
-   items will continue to be processed as arrays.
-   
-   Metadata files are searched for/processed in the following order:
-   	1) .meta/default.txt
-   	2) default.txt
-   	3) .meta/<title>.txt
-   	4) <title>.txt
-   Where <title> is the base name of the video file - or "folder" for directories.  DVDVideo shares have a few other
-   quirks concerning metadata - see below.
-   
-infolabelpercent=30
-   specifies the width, in percentage of the label field on the info screen.  Default is 30, but I have found that 
-   20 works well for HD screens
-   
-inforightmargin=20
-   specifies the width, in pixels of pad area on the right side of the info screen.  Default is 20. 0-100 allowed
+3) config.ini/vidmgr.ini - vidmgr no longer looks in config.ini for any configuration information.
+Any information you had there needs to be moved into vidmgr.ini in the vidmgr directory.  PLEASE
+read the vidmgr.ini.dist file that came with this distribution - it is heavily commented with
+how to set all of the various options.  Of particular significance when moving form version 1 to
+version 2 are the sort and display options.
 
-thumbjustify=left
-   specifies how thumbnail images should be justified.  default = left, can be center or right
-
-
-	c) You need to tell vidmgr about your Tivos.  For each tivo, you need to specify the name and
-the TSN.  The format for this is:
-[tivos]
-tivo1.name=Family Room
-tivo1.tsn=TSN1
-tivo2.name=Master Bedroom
-tivo2.tsn=TSN2
-
-You can have an arbitrary number of Tivos, but as soon as vidmgr detects a gap in the numbering
-sequence it will stop parsing.  Make sure the TSN's are accurate as this is how pytivo knows which
-tivo to push to.
-
-	d) You need to tell vidmgr about your PyTivo instances.  There are 5 possible pytivo parameters:
-		- config is mandatory and is the fully qualified name of the pytivo config file. 
-vidmgr reads this file to determine the share names and locations.  
-		- You may specify an ip address for the machine on which this instance of pytivo is running.
-If you do not specify one, the local IP address is used.
-		- If the pytivo config file names a port in the server section, then vidmgr will
-use that port number.  Otherwise you need to specify the port number here.
-		- if you do not wish to include ALL shares in the vidmgr listing, then specify the share name(s)
-that you wish to skip.  If this line is missing, all shares are included
-		-Finally, if your hme server is running in a different host environment than this
-instance of pytivo, then you need to specify the directory separator character for the pytivo environment.
-
-format for specifying pytivo information:
-[pytivos]
-pytivo1.config=/usr/local/pytivo/pyTivo.conf
-pytivo1.ip=192.168.1.201
-pytivo1.skip=share1, share2, ...
-pytivo1.port=9032
-pytivo1.sep=/
-
-You can have an arbitrary number of pytivos, but as soon as vidmgr detects a gap in the numbering
-sequence it will stop parsing.
-
-A note about the separator:  If you are running both vidmgr and pytivo on the same machine, then this
-is not required.  However, if (as was happening while I was developing) you are running vidmgr
-in a Windows environment (where the directory separator is unfortunately a backslash '\') and 
-you are running pytivo in a linux environment (where the separator is a forward slash '/') then
-you need to specify "pytivox.sep=/".  Otherwise, vidmgr will happily send its requests to 
-pytivo using a backslash in the paths and this will cause pytivo to choke.
-
-You can provide local configuration files to change behavior for a particular directory and its complete
-subtree.  In any of your share directories, you can create a file namesd ".vidmgr.ini" and put local changes
-into it.  These changes will override the config.ini file in that directory and in all subdirectories
-below that point.  You can only do this with a subset of configuration parameters:
-
-	deleteallowed		changes whether delete are allowed in this directory.  For example, I have
-						deleteallowed = false everywhere, but I have it set to true in my podcasts 
-						directory - otherwise these directories quickly become cluttered
-						
-	sort				change the metadata tags for constructing sort keys for this directory.  For
-						episodic shows you might want to sort on episodeNumber and for
-						non-episodic shows, you might want to sort on title
-						
-	sortdirection		up or down - should sorts be ascending or descending
-						
-	display				change the metadata tags for constructing the display text.  This allows different
-						metadata elements to be used in the display in different shares.  
-						
-	displaysep			change the separator to use in the formatting of the display strings
-	
 =======================================================================================================
 
 Usage
@@ -260,12 +139,12 @@ are not allowed or if this is a dvd video, you will simply receive a BONK sound.
 press thumbs-up to confirm and when you do, the file and its associated metadata and artwork will be deleted.  Note
 the folder-level metadata or artwork (folder.jpg, default.txt) will NOT be deleted.  If you press ANYTHING other
 than thumbs-up, the delete is cancelled.  The following video files cannot be deleted: 1) those for which deleteallowed
-is set to false, 2) and video that is part of a DVD since these are virtual files constructed on the fly from the VOB
+is set to false, 2) any video that is part of a DVD since these are virtual files constructed on the fly from the VOB
 files, and 3) videos that have multiple file system links since vidmgr cannot follow these links to make sure that
 all references are properly updated.
 
 At any time on any list you can press the info button to see a complete list of the metadata.  You can control
-which metadata items appear at the front of this display and which are ignored (see configuration above).  On
+which metadata items appear at the front of this display and which are ignored with configuration options.  On
 the info display, you can press left, clear, or info to return to the screen you came from.  If the information
 does not fit on one page, you will see paging cues and you can use either up/down or channel up/down to traverse
 the pages.
@@ -292,81 +171,7 @@ As a convenience, you can also trigger a rebuild of the cache with the remote co
 times in succession.  The app will be non-responsive while the cache is rebuilding.  After it is done, it will
 restart at the top of the tree.
 
-There are options you can specify for building the cache.  These are specified in the "buildcache.ini" file in the
-vidmgr directory.  Here is an example buildcache.ini file:
+Vidmgr.ini contains some options for controlling how the Cache is built.  Please refer to the dist file for more information.
 
-[options]
-sharepage=False
-topsubtitle=Main Menu
-
-[Browse by Genre]
-sort = metadata keys for sorting this virtual share
-tags = vProgramGenre vSeriesGenre
-
-[Browse by Actor]
-sort = metadata keys for sorting this virtual share
-display= metadata keys to be displayed for this virtual share
-displaysep=-
-sortdirection=down
-tags = vActor
-
-[Arnie and Duke]
-values = vActor:John Wayne, Arnold Schwarzenegger
-
-[Series]
-values = isEpisodic:true,True,TRUE
-groupby = seriesTitle
-
-
-
-The options section contains the following options:
-	sharepage = True or False
-		This controls whether the top screen of the navigation tree simply contains a "Browse Shares" link (sharepage=true)
-		that takes you to a page consisting of all of the shares you have defined, or if each share is a separate item on
-		the root page (sharepage=false).  For example, if you have share a and share b, and sharepage=true, the root page
-		would be:
-				browse shares
-				
-		if, on the other hand, sharepage was false, the root page would be:
-				share a
-				share b
-				
-		There will be other items on the root page too, depending on what types on metadata you are indexing.
-				
-	topsubtitle="text"
-		What text appears as a subtitle on the top-most (root) page.  The default is "Main Menu"
-		
-		
-The remainder of the ini file indicates what entries you want to have on the root screen, and what metadata tag(s) these
-should be based on.  In the above example, I will have four additional choices on the root screen.  The first two produce
-virtual directory structures based on the Genre and on the Actors.  Under the Genre folder will be a list of all of the Genre
-found in the metadata, and under Actor will be found all the actor names found in the metadata:
-	Browse by Genre
-		is based on the metadata tags 'vProgramGenre' and 'vSeriesGenre'
-		
-	Browse by Actor
-		is based on the metadata tags 'vActor'
-		
-The third and fourth examples ahow how a virtual share can be built based on whether or not a particular metadata tag contains
-one of a set of values.  In the first example, only videos that have either "John Wayne" or "Arnold Schwarzenegger" in the vActor
-field.  The last example contains only videos whose isEpisodic value is set to True (or true or TRUE).  You can specify
-multiple metadata expressions on the same line, separated by a forward slash (/).  Use NO unnecessary spaces; spaces are
-significant (as shown by the actor names above) and if you put spaces around the slashes (or commas) then they will be part
-of the matching criteria.  If you have multiple expressions on the same line, the ALL must be satisfied by the matching 
-algorithm in order for a video to be included in the virtual share.  The general syntax is:
-values=tag:value,value,value/tag:value,value/ ...
-
-A special value "values=all" will include EVERY video.  This allows you to do alternate grouping and/or sorting
-		
-You can add any number of such entries.  If the tag(s) you specify do not exist for any particular video, that video will
-not be part of that index. 
-
-As shown above, you can have a sort, sortdirection, display, or displaysep specification for each of these "virtual shares".
-These are optional.  If missing, the corresponding values from config.ini will be used.
-
-You can Also have a groupby option - this is ANY single metadata tag.   The value of that metadata tag for each matching video
-will be used to create a virtual folder within the virtual share.  In the example above, under "Series", there will be a 
-separate "folder" for each value of seriesTitle - and the videos will appear within this "folder".  Otherwise, ALL of the
-matching videos will show up in a single flat folder.  Any video that does not have the "groupby" metadata tag will be 
-placed into the root folder of that virtual share.  Groupby is probably more useful for the values= type of virtual share,
-but it is also available for tags= shares.
+Vidmgr.ini is also where you define your virtual shares.  Again - please consult the dist file for documentation about
+virtual shares.
