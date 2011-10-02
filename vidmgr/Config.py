@@ -168,7 +168,7 @@ class Config:
 					else:
 						raise ConfigError("Config error - sortdirection must be up or down")
 	
-				elif opt in ['sharepage', 'topsubtitle']:
+				elif opt in ['sharepage', 'topsubtitle', 'sortroot']:
 					pass # these are handled by cache building logic
 				
 				else:

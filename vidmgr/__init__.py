@@ -24,9 +24,9 @@ from Push import Push
 from MessageBox import MessageBox
 
 TITLE = 'PyTivo Video Manager'
-version = '2.0a'
+VERSION = '2.0c'
 
-print asctime(), TITLE + " version " + version + " starting"
+print asctime(), TITLE + " version " + VERSION + " module initializing"
 
 AppPath = os.path.dirname(__file__)
 
@@ -79,16 +79,22 @@ class Fonts:
 	
 class Vidmgr(Application):
 	def handle_resolution(self):
+		print "Vidmgr Entering Handle Resolution"
 		for (hres, vres, x, y) in self.resolutions:
+			print "   Checking resolution %d, %d" %(hres, vres)
 			if (hres == 1280):
+				print "  Found an HD resolution"
 				return (hres, vres, x, y)
 			
+		print "NO HD resolutions found!!!"
 		self.active = False
 		self.sound('bonk')
 		return self.resolutions[0]
 	
 	def startup(self):
+		print "Vidmgr thread entering startup"
 		self.vwInfo = None
+		self.vcChanged = False
 		config = Config.Config()
 		self.opts = config.load()
 		self.cp = config.getConfigParser()
@@ -115,10 +121,10 @@ class Vidmgr(Application):
 	def cleanup(self):
 		tc.save()
 		if self.vcChanged:
-			print "Video Cache has changed - saving"
 			self.vc.save()
 		
 	def handle_active(self):
+		print "Vidmgr thread activating"
 		self.myimages = Images(self)
 		self.myfonts = Fonts(self)
 		self.tdcount = 0
@@ -159,6 +165,7 @@ class Vidmgr(Application):
 		self.ddm.show(self.currentItem)
 		
 		if self.currentNode == None:
+			print "Current node = NULL - exiting"
 			self.active = False
 			
 	def handle_font_info(self, font):

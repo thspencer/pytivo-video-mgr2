@@ -123,12 +123,16 @@ sort=
 sortdirection=
 
 # 
-# the next option controls the contents of the fop of the navigation tree.  If set to true, the top page will
+# the next options control the contents of the top of the navigation tree.  If sharepage isset to true, the top page will
 # contain an entry that says 'Browse Shares'.  This will take you to a separate page where the shares are listed.
-# If ths is set to false, then each share will be on the top screen.
+# If it is set to false, then each share will be on the top screen.
+# if sortroot is true, the virtual shares and the actual shares will be sorted together.  If it is false (the default)
+# then the actual shares will appear above the virtual shares.  Both will be sorted, but one will appear before the other
 #      default: sharepage=true
+#               sortroot=false
 #
 sharepage=
+sortroot=
 
 #
 # what text string should be used for the subtitle on the top navigation screen.  The subtitle normally gives

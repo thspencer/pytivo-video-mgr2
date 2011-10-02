@@ -138,6 +138,9 @@ class DVDShare:
 	def formatDisplayText(self, fmt):
 		return self.title
 	
+	def formatSortText(self, fmt):
+		return self.title
+	
 	def getFullTitle(self):
 		return self.title
 					

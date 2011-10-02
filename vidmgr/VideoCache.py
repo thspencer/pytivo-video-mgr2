@@ -110,7 +110,6 @@ class VideoCache:
 		self.built = None
 		self.opts = opts.copy()
 		self.cfg = cfg
-		self.vidlist = VideoList()
 		p = os.path.dirname(__file__)
 		self.filename = os.path.join(p, CACHEFILE)
 		
@@ -192,6 +191,9 @@ class VideoCache:
 		
 		title = "Main Menu"
 		sharepage = True
+		sortroot = False
+		
+		vidlist = VideoList()
 
 		harvesters = []
 
@@ -203,6 +205,15 @@ class VideoCache:
 		if self.cfg.has_option(OPTSECT, 'topsubtitle'):
 			title = self.cfg.get(OPTSECT, 'topsubtitle')
 			
+		if self.cfg.has_option(OPTSECT, 'sortroot'):
+			f = self.cfg.get(OPTSECT, 'sortroot').lower()
+			if f == 'true':
+				sortroot = True
+			elif f == 'false':
+				sortroot = False
+			else:
+				raise ConfigError("Error in buildcache.ini - sortroot must be true or false")
+		
 		for section in self.cfg.sections():
 			if section not in [OPTSECT, 'tivos', 'pytivos']:
 				lopts = self.opts.copy()
@@ -265,11 +276,11 @@ class VideoCache:
 			for name, path, type in sl:
 				if type == SHARETYPE_VIDEO:
 					print "Processing video share " + name
-					s = VideoShare(self.opts, name, path, self.vidlist, harvesters)
+					s = VideoShare(self.opts, name, path, vidlist, harvesters)
 					print "%d Videos found" % s.VideoCount()
 				else: # type == SHARETYPE_DVD
 					print "Processing DVD share " + name
-					s = DVDShare(self.opts, name, path, self.vidlist, harvesters)
+					s = DVDShare(self.opts, name, path, vidlist, harvesters)
 					print "%d DVD Videos found" % s.VideoCount()
 					
 				shares.addDir(s)
@@ -278,14 +289,16 @@ class VideoCache:
 			for name, path, type in sl:
 				if type == SHARETYPE_VIDEO:
 					print "Processing video share " + name
-					s = VideoShare(self.opts, name, path, self.vidlist, harvesters)
+					s = VideoShare(self.opts, name, path, vidlist, harvesters)
 					print "%d Videos found" % s.VideoCount()
 				else: # type == SHARETYPE_DVD
 					print "Processing DVD share " + name
-					s = DVDShare(self.opts, name, path, self.vidlist, harvesters)
+					s = DVDShare(self.opts, name, path, vidlist, harvesters)
 					print "%d DVD Videos found" % s.VideoCount()
 
 				root.addDir(s)
+				
+		root.sort()
 
 		for h in sorted(harvesters, cmpHarvesters):
 			title = h.formatDisplayText(None)
@@ -297,6 +310,8 @@ class VideoCache:
 				print "%s count: %d videos in %d groups" % (title, vc, gc)
 			root.addDir(nd)
 
+		if sortroot: root.sort()
+		
 		self.cache = root
 
 		return root
