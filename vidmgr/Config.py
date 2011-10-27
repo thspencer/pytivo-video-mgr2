@@ -2,6 +2,7 @@ from hme import RSRC_HALIGN_LEFT, RSRC_HALIGN_RIGHT, RSRC_HALIGN_CENTER
 
 import os
 import ConfigParser
+import FileID
 
 screenHeight = 720
 screenWidth = 1280
@@ -87,7 +88,8 @@ class Config:
 				'dispsep' : ":",
 				'sortopt' : ['title', 'episodeTitle'],
 				'sortup' : True,
-				'group' : None
+				'group' : None,
+				'usefileid' : True
 				}
 	
 		if self.cfg.has_section('vidmgr'):
@@ -168,12 +170,17 @@ class Config:
 					else:
 						raise ConfigError("Config error - sortdirection must be up or down")
 	
+				elif opt == 'usefileid':
+					if lval == "false":
+						opts['usefileid'] = False
+				
 				elif opt in ['sharepage', 'topsubtitle', 'sortroot']:
 					pass # these are handled by cache building logic
 				
 				else:
 					raise ConfigError("Config error - unknown option (%s)" % opt)
 	
+		FileID.setFileIDOption(opts['usefileid'])
 		return opts
 
 def addLocalOpts(opts, root, path):

@@ -3,5 +3,8 @@ Version 2.0c - 10/2/2011
 - added logic to sort root directory - either sort physical shares and virtual shares separately or together
 - fixed bug that did not allow cache to be dynamically built a second time
 
+Version 2.0d - 10/27/2011
+- added an option usefileid, default true, to turn off the file uniqueness checking which can be expensive under windows
+
 
 

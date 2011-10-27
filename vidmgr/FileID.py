@@ -1,6 +1,15 @@
 import sys
 import os
 
+useFileID = True
+fileseq = 0
+
+def setFileIDOption(flag):
+	global useFileID
+	
+	useFileID = flag
+	
+
 if sys.platform[:3].lower() == "win":
 	import win32file
 	
@@ -16,6 +25,11 @@ if sys.platform[:3].lower() == "win":
 		return volume, index_hi, index_lo
 	
 	def fileId (filename):
+		global fileseq
+		if not useFileID:
+			fileseq += 1
+			return fileseq
+		
 		try:
 			hf = win32file.CreateFile (
 				filename,
@@ -34,6 +48,11 @@ if sys.platform[:3].lower() == "win":
 		return rc
 else:
 	def fileId(filename):
+		global fileseq
+		if not useFileID:
+			fileseq += 1
+			return fileseq
+		
 		try:
 			rc = os.stat(filename).st_ino
 		except:

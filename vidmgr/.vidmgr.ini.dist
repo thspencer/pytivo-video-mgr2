@@ -14,28 +14,28 @@
 #
 # specify True or False
 #
-deleteallowed=
+# deleteallowed=
 
 #
 # what metadata tags should be used to construct the string used to identify this file on the screen
 # specify a list of metadata tags (e.g. display=title episodeTitle)
 #
-display=
+# display=
 
 # what string should be used to separate the above metadata when constructing the title string
 # specify an arbitrary string
 #
-displaysep=
+# displaysep=
 
 #
 # what metadata tags should be used to construct the string that is used to sort the videos when they
 # are displayed in a list
 # specify a list of metadata tags (e.g. sort=title episodeTitle)
 #
-sort=
+# sort=
 
 #
 # which direction should the sort be
 # specify up for an ascending sort or down for a descending sort
 #
-sortdirection=up
+# sortdirection=
