@@ -6,5 +6,11 @@ Version 2.0c - 10/2/2011
 Version 2.0d - 10/27/2011
 - added an option usefileid, default true, to turn off the file uniqueness checking which can be expensive under windows
 
+Version 2.0e - 10/28/2011
+- fixed a bug in that prevented virtual share attributes from being parsed
+correctly from the vidmgr.ini file
+- added the alpha virtual share type
+- added the shares= option to the vidmgi.ini to limit virtual shares to a list
+of pytivo shares
 
 

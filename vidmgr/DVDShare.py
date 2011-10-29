@@ -53,12 +53,16 @@ class DVDShare:
 						meta['title'] = title
 						meta['titleNumber'] = tn
 						vf.setMeta(meta)
+						
+						vdir.addVideo(vf)
+						self.count += 1
 
 						for h in harvesters:
 							h.harvest(vf)
 
-					vdir.addVideo(vf)
-					self.count += 1
+					else:
+						vdir.addVideo(vf)
+						self.count += 1
 			else:
 				for dir in dirs:
 					if dir.startswith("."): continue

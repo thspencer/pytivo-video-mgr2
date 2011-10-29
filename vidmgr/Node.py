@@ -6,9 +6,16 @@ Created on Aug 6, 2011
 
 from Config import TYPE_NODE
 
+OTHER = "<other>"
+
 class Node:
-	def __init__(self, name, opts, videoList = None, dirList=None):
+	def __init__(self, name, opts, title = None, videoList = None, dirList=None):
 		self.name = name
+		if title == None:
+			self.title = name
+		else:
+			self.title = title
+			
 		self.opts = opts
 		if videoList == None:
 			self.videoList = []
@@ -36,7 +43,7 @@ class Node:
 		return self.name
 	
 	def getFullTitle(self):
-		return self.name
+		return self.title
 	
 	def getName(self):
 		return self.name
@@ -79,7 +86,12 @@ class Node:
 	def sort(self):
 		def cmpNodes(a, b):
 			ta = a.formatSortText(self.opts['sortopt'])
+			if ta == OTHER:
+				return 1
 			tb = b.formatSortText(self.opts['sortopt'])
+			if tb == OTHER:
+				return -1
+			
 			if (self.opts['sortup']):
 				return cmp(ta, tb)
 			else:

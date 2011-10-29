@@ -193,7 +193,7 @@
 # [virtual share name X]
 
 #
-# there are three possible ways to indicate which files to include.  You must use exactly 1 of them for each virtual share:
+# there are four possible ways to indicate which files to include.  You must use exactly 1 of them for each virtual share:
 #
 # 1. specify which metadata tags are used to divide videos up into groups:
 #
@@ -221,7 +221,16 @@
 # title number for DVD videos.
 #
 #
-# 3. include ALL videos unconditionally:
+# 3. select videos based on a metadata tag, but group them into alphabetical folders (e.g. "A", "B", ... "9", "<Other>")
+#
+# alpha = tag
+#
+# for example, specifying alpha=Title will organize all videos into title order, but it will produce a separate "folder"
+# for each occurring letter or digit.  Titles that do not have a leading letter or digit are placed into an "<Other>" folder.
+# Only letters and digits that have at least one video will be presented.
+#
+#
+# 4. include ALL videos unconditionally:
 #
 # values=all
 #
@@ -232,7 +241,7 @@
 #
 # within the videos selected for a virtual share, you can add one layer of grouping.  This is provided by the groupby
 # option.  The tags option above already offers a layer of grouping, so this option is probably more useful for the
-# values option, but it CAN be used with tags.
+# values and alpha options, but it CAN be used with tags.
 #
 # to use this option, specify a SINGLE metadata tag.  For each matching video, the value for this tag is used to create/identify
 #  a "folder" into which this video is placed.  If the video does NOT contain the tag, then the video is placed in the root
@@ -243,6 +252,17 @@
 # groupby=
 
 #
+# it is possible to limit the selection of videos for a virtual share to a list of physical shares by using the
+# shares= statement.  If omotted, ALL shares are considered as a source for videos
+#
+# shares=
+# for example if all of your movies are in a share titled "My Movies", then then following
+# [Movies Alphabetically]
+# alpha=Title
+# shares=My Movies
+#
+# will create a virtual share containing all videos from the My Movie share organized into alhpabetical folders
+
 # finally, it is possible to override the sort, sortdirection, display, and displaysep options for this virtual share
 # by simply specifying that option in the corresponding section.  If these are missing, then the global values will be used.
 #

@@ -4,20 +4,29 @@ Created on Aug 4, 2011
 @author: Jeff
 '''
 
-from Node import Node
+from Node import Node, OTHER
 from Config import ConfigError
 
 HARVEST_KEYSET = 1
 HARVEST_KEYVAL = 2
+HARVEST_ALPHA = 3
 HARVEST_ALL = 9
+
+AlphaKeys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 class MetaHarvester:
 	def __init__(self, name, opts):
 		self.name = name
 		self.opts = opts.copy()
-		self.root = Node(name, opts)
+		groupTag = self.opts['group']
+		if groupTag == None:
+			self.root = Node(name, opts)
+		else:
+			self.root = Node(name, opts, title = "%s (grouped by %s)" % (name, groupTag))
+			
 		self.nodeMap = {}
 		self.metakeys = []
+		self.metakey = None
 		self.metakeydict = {}
 		self.type = None
 		self.count = 0
@@ -34,14 +43,37 @@ class MetaHarvester:
 	def setAll(self):
 		self.type = HARVEST_ALL
 		
+	def setAlpha(self, metakey):
+		self.metakey = metakey
+		self.type = HARVEST_ALPHA
+		
 	def formatDisplayText(self, fmt):
-		return self.name
+		n = self.name
+		groupTag = self.opts['group']
+		if groupTag:
+			n += " (grouped by %s)" % groupTag
+
+		return n
 	
 	def harvest(self, vf):
+		if self.opts['shares']:
+			# skip the video unless it's in one of the shares
+			# we are including
+			found = False
+			vfsl = vf.getShareList();
+			for s in self.opts['shares']:
+				if s in vfsl:
+					found = True
+					break
+			if not found:
+				return
+		
 		if self.type == HARVEST_KEYSET:
 			self.harvestKEYSET(vf)
 		elif self.type == HARVEST_KEYVAL:
 			self.harvestKEYVAL(vf)
+		elif self.type == HARVEST_ALPHA:
+			self.harvestALPHA(vf)
 		elif self.type == HARVEST_ALL:
 			self.harvestALL(vf)
 			
@@ -49,14 +81,17 @@ class MetaHarvester:
 		mvf = vf.getMeta()
 		# determine grouping
 		groupTag = self.opts['group']
-		if groupTag == None or groupTag not in mvf:
+		if groupTag == None:
 			# no grouping - stuff into root node
 			target = self.root
 		else:
 			# get the grouping value
-			grp = mvf[groupTag]
-			if type(grp) is list:
-				raise ConfigError("Configuration Error - grouping item must not be a list")
+			if groupTag not in mvf:
+				grp = OTHER
+			else:
+				grp = mvf[groupTag]
+				if type(grp) is list:
+					raise ConfigError("Configuration Error - grouping item must not be a list")
 
 			if grp in self.nodeMap:
 				# if we've seen this group, then just reuse the 
@@ -72,11 +107,67 @@ class MetaHarvester:
 		target.addVideo(vf)
 		self.count += 1
 
+	def harvestALPHA(self, vf):
+		# get the metadata for the video we are trying to add
+		mvf = vf.getMeta()
+		k = self.metakey
+		if not k in mvf:
+			return
+		
+		if type(mvf[k]) is list:
+			raise ConfigError("Error in ini file - tag for alpha cannot be a list")
+		
+		keychar = mvf[k][0].upper()
+		if keychar not in AlphaKeys:
+			keychar = OTHER
+			
+		groupTag = self.opts['group']
+		if groupTag == None:
+			# no grouping for this share OR video does not have
+			# grouping metadata item
+			if keychar not in self.nodeMap:
+				# we've not seen this value yet - create a Node
+				# and link it in
+				target = Node(keychar + "... ", self.opts)
+				self.nodeMap[keychar] = target
+				self.root.addDir(target)
+			else:
+				# otherwise we've seen it so just use it
+				target = self.nodeMap[keychar]
+					
+		else:
+			# otherwise we are grouping
+			if groupTag not in mvf:
+				grp = OTHER
+			else:
+				grp = mvf[groupTag]
+				if type(grp) is list:
+					raise ConfigError ("Configuration Error - grouping item must not be a list")
+	
+			if grp not in self.nodeMap:
+				grpNode = Node(grp, self.opts)
+				self.nodeMap[grp] = grpNode
+				self.root.addDir(grpNode)
+				self.gcount += 1
+			else:
+				grpNode = self.nodeMap[grp]
+					
+			mvkey = grp + "/" + keychar
+			if mvkey not in self.nodeMap:
+				target = Node(keychar + "... ", self.opts, title = mvkey + "...")
+				self.nodeMap[mvkey] = target
+				grpNode.addDir(target)
+			else:
+				target = self.nodeMap[mvkey]
+				
+		target.addVideo(vf)
+		self.count += 1
+		
 	def harvestKEYVAL(self, vf):
 		# get the metadata for the video we are trying to add
 		mvf = vf.getMeta()
 		
-		# now go through our dictionary of matching tags
+			# now go through our dictionary of matching tags
 		for k in self.metakeydict.keys():
 			# if a tag is NOT in the video, then do not
 			# include that video here
@@ -109,14 +200,17 @@ class MetaHarvester:
 		
 		# determine grouping
 		groupTag = self.opts['group']
-		if groupTag == None or groupTag not in mvf:
+		if groupTag == None:
 			# no grouping - stuff into root node
 			target = self.root
 		else:
 			# get the grouping value
-			grp = mvf[groupTag]
-			if type(grp) is list:
-				raise ConfigError("Configuration Error - grouping item must not be a list")
+			if groupTag not in mvf:
+				grp = OTHER
+			else:
+				grp = mvf[groupTag]
+				if type(grp) is list:
+					raise ConfigError("Configuration Error - grouping item must not be a list")
 
 			if grp in self.nodeMap:
 				# if we've seen this group, then just reuse the 
@@ -156,7 +250,7 @@ class MetaHarvester:
 		# now go through the worklist and build the structure as we go
 		tally = False
 		for mv in addlist:
-			if groupTag == None or groupTag not in mvf:
+			if groupTag == None:
 				# no grouping for this share OR video does not have
 				# grouping metadata item
 				if mv not in self.nodeMap:
@@ -171,9 +265,12 @@ class MetaHarvester:
 					
 			else:
 				# otherwise we are grouping
-				grp = mvf[groupTag]
-				if type(grp) is list:
-					raise ConfigError ("Configuration Error - grouping item must not be a list")
+				if groupTag not in mvf:
+					grp = OTHER
+				else:
+					grp = mvf[groupTag]
+					if type(grp) is list:
+						raise ConfigError ("Configuration Error - grouping item must not be a list")
 
 				if grp not in self.nodeMap:
 					grpNode = Node(grp, self.opts)
@@ -185,7 +282,7 @@ class MetaHarvester:
 					
 				mvkey = grp + "/" + mv
 				if mvkey not in self.nodeMap:
-					target = Node(mvkey, self.opts)
+					target = Node(mv, self.opts, title = mvkey)
 					self.nodeMap[mvkey] = target
 					grpNode.addDir(target)
 				else:

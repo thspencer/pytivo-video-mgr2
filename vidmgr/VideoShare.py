@@ -65,11 +65,16 @@ class VideoShare:
 							meta = metadata.basic(os.path.join(path, name))
 						vf.setMeta(meta)
 
+						vl.addVideo(vf)
+						self.count += 1
+						
 						for h in harvesters:
 							h.harvest(vf)
 
-					vl.addVideo(vf)
-					self.count += 1
+					else:
+						vl.addVideo(vf)
+						self.count += 1
+						
 			vl.sort()
 			
 	def getObjType(self):

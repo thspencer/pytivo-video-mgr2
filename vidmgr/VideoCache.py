@@ -212,39 +212,59 @@ class VideoCache:
 			elif f == 'false':
 				sortroot = False
 			else:
-				raise ConfigError("Error in buildcache.ini - sortroot must be true or false")
+				raise ConfigError("Error - sortroot must be true or false")
 		
 		for section in self.cfg.sections():
 			if section not in [OPTSECT, 'tivos', 'pytivos']:
 				lopts = self.opts.copy()
 				if self.cfg.has_option(section, 'sort'):
 					lopts['sortopt'] = self.cfg.get(section,'sort').split()
-				elif self.cfg.has_option(section, 'sortdirection'):
+					
+				if self.cfg.has_option(section, 'sortdirection'):
 					lval = self.cfg.get(section, 'sortdirection').lower()
 					if lval == 'down':
 						lopts['sortup'] = False
 					elif lval == 'up':
 						lopts['sortup'] = True
 					else:
-						raise ConfigError("Error in buildcache.ini - sortdirection must be up or down")
+						raise ConfigError("Error in ini file - sortdirection must be up or down")
 						
-				elif self.cfg.has_option(section, 'display)'):
+				if self.cfg.has_option(section, 'display)'):
 					lopts['dispopt'] = self.cfg.get(section, 'display').split()
-				elif self.cfg.has_option(section, 'displaysep'):
+					
+				if self.cfg.has_option(section, 'displaysep'):
 					lopts['dispsep'] = self.cfg.get(section, 'displaysep')
 
-				elif self.cfg.has_option(section, 'groupby'):
-					lopts['group'] = self.cfg.get(section, 'groupby')					
-				
-				if not(self.cfg.has_option(section, 'tags') or self.cfg.has_option(section, 'values')):
-					raise ConfigError("Error in ini file.  Section %s needs tags or values option" % section)
+				if self.cfg.has_option(section, 'groupby'):
+					lopts['group'] = self.cfg.get(section, 'groupby')
 					
-				elif self.cfg.has_option(section, 'tags'):
+				lopts['shares'] = None
+				if self.cfg.has_option(section, "shares"):
+					inc = self.cfg.get(section, "shares").split(",")
+					lopts['shares'] = [s.strip() for s in inc]
+				
+				hasTags = self.cfg.has_option(section, 'tags')
+				hasValues = self.cfg.has_option(section, 'values')
+				hasAlpha = self.cfg.has_option(section, 'alpha')
+				
+				if hasTags:
+					if hasValues or hasAlpha:
+						raise ConfigError("Error - tags, values, and alpha are mutually exclusive in section %s" % section)
+					
 					h = MetaHarvester(section, lopts)
 					h.setKeySet(self.cfg.get(section,'tags').split())
 					harvesters.append(h)
-					
-				else:  # self.cfg.has_option(section, 'values'):
+				
+				elif hasAlpha:
+					if hasValues:
+						raise ConfigError("Error - tags, values, and alpha are mutually exclusive in section %s" % section)
+
+					mkey = self.cfg.get(section, 'alpha')
+					h = MetaHarvester(section, lopts)
+					h.setAlpha(mkey)
+					harvesters.append(h)
+
+				elif hasValues:
 					if self.cfg.get(section, 'values').lower() == 'all':
 						h = MetaHarvester(section, lopts)
 						h.setAll()
@@ -264,6 +284,10 @@ class VideoCache:
 						h = MetaHarvester(section, lopts)
 						h.setKeyVal(vdict)
 						harvesters.append(h)
+						
+				else: # section does not have the necessary virtual share tags
+					raise ConfigError("Error - Section %s needs tags, values, or alpha option" % section)
+					
 
 		sl = self.loadShares()
 		if len(sl) == 0:

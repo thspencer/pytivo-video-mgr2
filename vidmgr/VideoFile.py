@@ -98,6 +98,16 @@ class VideoFile:
 		
 		return self.vRef[0].getShare();
 	
+	def getShareList(self):
+		l = []
+		if len(self.vRef) == 0:
+			return l
+		
+		for v in self.vRef:
+			l.append(v.getShare())
+		
+		return l;
+	
 	def setMeta(self, meta):
 		self.meta = meta
 		self.formatDisplayText(self.opts['dispopt'])
