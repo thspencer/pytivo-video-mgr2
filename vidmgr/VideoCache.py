@@ -11,7 +11,7 @@ from VideoShare import VideoShare
 from DVDShare import DVDShare
 from VideoFile import VideoFile
 from VideoDir import VideoDir
-from Meta import MetaHarvester
+from Meta import AllHarvester, AlphaHarvester, KeySetHarvester, KeyValHarvester
 from DVDDir import DVDDir
 import ConfigParser
 import cPickle as pickle
@@ -251,8 +251,7 @@ class VideoCache:
 					if hasValues or hasAlpha:
 						raise ConfigError("Error - tags, values, and alpha are mutually exclusive in section %s" % section)
 					
-					h = MetaHarvester(section, lopts)
-					h.setKeySet(self.cfg.get(section,'tags').split())
+					h = KeySetHarvester(section, lopts, self.cfg.get(section,'tags').split())
 					harvesters.append(h)
 				
 				elif hasAlpha:
@@ -260,14 +259,12 @@ class VideoCache:
 						raise ConfigError("Error - tags, values, and alpha are mutually exclusive in section %s" % section)
 
 					mkey = self.cfg.get(section, 'alpha')
-					h = MetaHarvester(section, lopts)
-					h.setAlpha(mkey)
+					h = AlphaHarvester(section, lopts, mkey)
 					harvesters.append(h)
 
 				elif hasValues:
 					if self.cfg.get(section, 'values').lower() == 'all':
-						h = MetaHarvester(section, lopts)
-						h.setAll()
+						h = AllHarvester(section, lopts)
 						harvesters.append(h)
 					else:
 						terms = self.cfg.get(section, 'values').split('/')
@@ -281,8 +278,7 @@ class VideoCache:
 							vals = v[1].split(',')
 							vdict[tag] = vals
 							
-						h = MetaHarvester(section, lopts)
-						h.setKeyVal(vdict)
+						h = KeyValHarvester(section, lopts, vdict)
 						harvesters.append(h)
 						
 				else: # section does not have the necessary virtual share tags

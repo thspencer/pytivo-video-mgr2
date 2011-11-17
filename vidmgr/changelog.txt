@@ -13,4 +13,9 @@ correctly from the vidmgr.ini file
 - added the shares= option to the vidmgi.ini to limit virtual shares to a list
 of pytivo shares
 
+Version 2.0f - 11/16/2011
+- changed implementation of harvesters to use subclassing
+- minor changes to the subtitle when grouping is being used
+- fixed bug reported by bwall23 where port number was not successfully retrieved from pytivo config file
+
 

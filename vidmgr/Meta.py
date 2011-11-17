@@ -6,15 +6,11 @@ Created on Aug 4, 2011
 
 from Node import Node, OTHER
 from Config import ConfigError
-
-HARVEST_KEYSET = 1
-HARVEST_KEYVAL = 2
-HARVEST_ALPHA = 3
-HARVEST_ALL = 9
+from InfoView import metaTranslate
 
 AlphaKeys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-class MetaHarvester:
+class Harvester:
 	def __init__(self, name, opts):
 		self.name = name
 		self.opts = opts.copy()
@@ -22,39 +18,33 @@ class MetaHarvester:
 		if groupTag == None:
 			self.root = Node(name, opts)
 		else:
-			self.root = Node(name, opts, title = "%s (grouped by %s)" % (name, groupTag))
+			self.root = Node(name, opts, title = "%s (grouped by %s)" % (name, metaTranslate(groupTag)))
 			
 		self.nodeMap = {}
-		self.metakeys = []
-		self.metakey = None
-		self.metakeydict = {}
-		self.type = None
 		self.count = 0
 		self.gcount = 0
-		
-	def setKeySet(self, metakeys):
-		self.metakeys = [k for k in metakeys]
-		self.type = HARVEST_KEYSET
-		
-	def setKeyVal(self, metakeydict):
-		self.metakeydict = metakeydict.copy()
-		self.type = HARVEST_KEYVAL
-		
-	def setAll(self):
-		self.type = HARVEST_ALL
-		
-	def setAlpha(self, metakey):
-		self.metakey = metakey
-		self.type = HARVEST_ALPHA
 		
 	def formatDisplayText(self, fmt):
 		n = self.name
 		groupTag = self.opts['group']
 		if groupTag:
-			n += " (grouped by %s)" % groupTag
+			n += " (grouped by %s)" % metaTranslate(groupTag)
 
 		return n
 	
+	def getNode(self):
+		self.root.sort()
+		for n in self.nodeMap.keys():
+			self.nodeMap[n].sort()
+			
+		return self.root
+	
+	def videoCount(self):
+		if self.opts['group'] == None:
+			return (self.count, None)
+		else:
+			return (self.count, self.gcount)
+		
 	def harvest(self, vf):
 		if self.opts['shares']:
 			# skip the video unless it's in one of the shares
@@ -66,18 +56,18 @@ class MetaHarvester:
 					found = True
 					break
 			if not found:
-				return
+				return False
 		
-		if self.type == HARVEST_KEYSET:
-			self.harvestKEYSET(vf)
-		elif self.type == HARVEST_KEYVAL:
-			self.harvestKEYVAL(vf)
-		elif self.type == HARVEST_ALPHA:
-			self.harvestALPHA(vf)
-		elif self.type == HARVEST_ALL:
-			self.harvestALL(vf)
-			
-	def harvestALL(self, vf):
+		return True
+
+class AllHarvester(Harvester):	
+	def __init__(self, name, opts):
+		Harvester.__init__(self, name, opts)
+		
+	def harvest(self, vf):	
+		if not Harvester.harvest(self, vf):
+			return
+		
 		mvf = vf.getMeta()
 		# determine grouping
 		groupTag = self.opts['group']
@@ -99,7 +89,7 @@ class MetaHarvester:
 				target = self.nodeMap[grp]
 			else:
 				# Otherwise create a new node and link it in
-				target = Node(grp, self.opts)
+				target = Node(grp, self.opts, title = "%s: %s" %(metaTranslate(groupTag), grp))
 				self.nodeMap[grp] = target
 				self.root.addDir(target)
 				self.gcount += 1
@@ -107,7 +97,14 @@ class MetaHarvester:
 		target.addVideo(vf)
 		self.count += 1
 
-	def harvestALPHA(self, vf):
+class AlphaHarvester(Harvester):
+	def __init__(self, name, opts, metakey):
+		Harvester.__init__(self, name, opts)
+		self.metakey = metakey
+
+	def harvest(self, vf):	
+		if not Harvester.harvest(self, vf):
+			return
 		# get the metadata for the video we are trying to add
 		mvf = vf.getMeta()
 		k = self.metakey
@@ -115,7 +112,7 @@ class MetaHarvester:
 			return
 		
 		if type(mvf[k]) is list:
-			raise ConfigError("Error in ini file - tag for alpha cannot be a list")
+			raise ConfigError("Configuration Error - tag for alpha cannot be a list")
 		
 		keychar = mvf[k][0].upper()
 		if keychar not in AlphaKeys:
@@ -144,15 +141,16 @@ class MetaHarvester:
 				if type(grp) is list:
 					raise ConfigError ("Configuration Error - grouping item must not be a list")
 	
+			grpTitle = "%s: %s" % (metaTranslate(groupTag), grp)
 			if grp not in self.nodeMap:
-				grpNode = Node(grp, self.opts)
+				grpNode = Node(grp, self.opts, title = grpTitle)
 				self.nodeMap[grp] = grpNode
 				self.root.addDir(grpNode)
 				self.gcount += 1
 			else:
 				grpNode = self.nodeMap[grp]
 					
-			mvkey = grp + "/" + keychar
+			mvkey = grpTitle + "/" + keychar
 			if mvkey not in self.nodeMap:
 				target = Node(keychar + "... ", self.opts, title = mvkey + "...")
 				self.nodeMap[mvkey] = target
@@ -163,7 +161,14 @@ class MetaHarvester:
 		target.addVideo(vf)
 		self.count += 1
 		
-	def harvestKEYVAL(self, vf):
+class KeyValHarvester(Harvester):
+	def __init__(self, name, opts, metakeydict):
+		Harvester.__init__(name, opts)
+		self.metakeydict = metakeydict.copy()
+			
+	def harvest(self, vf):
+		if not Harvester.harvest(self, vf):
+			return
 		# get the metadata for the video we are trying to add
 		mvf = vf.getMeta()
 		
@@ -218,15 +223,22 @@ class MetaHarvester:
 				target = self.nodeMap[grp]
 			else:
 				# Otherwise create a new node and link it in
-				target = Node(grp, self.opts)
+				target = Node(grp, self.opts, title = "%s: %s" %(metaTranslate(groupTag), grp))
 				self.nodeMap[grp] = target
 				self.root.addDir(target)
 				self.gcount += 1
 		
 		target.addVideo(vf)
 		self.count += 1
+		
+class KeySetHarvester(Harvester):
+	def __init__(self, name, opts, metakeys):
+		Harvester.__init__(self, name, opts)
+		self.metakeys = [k for k in metakeys]
 
-	def harvestKEYSET(self, vf):
+	def harvest(self, vf):
+		if not Harvester.harvest(self, vf):
+			return
 		# get the metadata for the video
 		mvf = vf.getMeta()
 		groupTag = self.opts['group']
@@ -272,15 +284,16 @@ class MetaHarvester:
 					if type(grp) is list:
 						raise ConfigError ("Configuration Error - grouping item must not be a list")
 
+				grpTitle = "%s: %s" % (metaTranslate(groupTag), grp)
 				if grp not in self.nodeMap:
-					grpNode = Node(grp, self.opts)
+					grpNode = Node(grp, self.opts, title = grpTitle)
 					self.nodeMap[grp] = grpNode
 					self.root.addDir(grpNode)
 					self.gcount += 1
 				else:
 					grpNode = self.nodeMap[grp]
 					
-				mvkey = grp + "/" + mv
+				mvkey = grpTitle + "/" + mv
 				if mvkey not in self.nodeMap:
 					target = Node(mv, self.opts, title = mvkey)
 					self.nodeMap[mvkey] = target
@@ -294,15 +307,3 @@ class MetaHarvester:
 		if tally:
 			self.count += 1
 
-	def getNode(self):
-		self.root.sort()
-		for n in self.nodeMap.keys():
-			self.nodeMap[n].sort()
-			
-		return self.root
-	
-	def videoCount(self):
-		if self.opts['group'] == None:
-			return (self.count, None)
-		else:
-			return (self.count, self.gcount)

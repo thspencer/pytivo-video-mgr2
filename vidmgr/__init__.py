@@ -24,7 +24,7 @@ from Push import Push
 from MessageBox import MessageBox
 
 TITLE = 'PyTivo Video Manager'
-VERSION = '2.0e'
+VERSION = '2.0f'
 
 print asctime(), TITLE + " version " + VERSION + " module initializing"
 
@@ -381,8 +381,6 @@ class Vidmgr(Application):
 				
 				self.loadPyTivoConfig(cfgfile, ip, port, sep, skip)
 					
-				if port == None:
-					raise ConfigError("Neither main config file nor pytivo config file " + cfgfile + " has port number specified")
 
 	# parse a pytivo config looking for shares				
 	def loadPyTivoConfig(self, cf, ip, defport, sep, skip):
@@ -392,6 +390,9 @@ class Vidmgr(Application):
 
 		port = defport
 		if pyconfig.has_option('Server', 'port') : port = pyconfig.get('Server', 'port')
+		
+		if port == None:
+			raise ConfigError("Neither main config file nor pytivo config file " + cf + " has port number specified")
 		
 		for section in pyconfig.sections():
 			if not section in skip:

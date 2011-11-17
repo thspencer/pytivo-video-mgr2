@@ -38,6 +38,12 @@ metaXlate = { 'title': 'Title',
 infoLabelPercent = 30
 infoRightMargin = 20
 
+def metaTranslate(meta):
+	if meta in metaXlate:
+		return metaXlate[meta]
+	else:
+		return meta
+
 class InfoView(View):
 	def __init__(self, app, opts, font):
 		xpos = (screenWidth-infoWidth)/2
