@@ -6,6 +6,7 @@ Created on Aug 3, 2011
 
 import os
 from Config import TYPE_VIDDIR
+from Node import cmpList
 
 class VideoDir:
 	def __init__(self, opts, name, rpath, apath, share):
@@ -85,9 +86,9 @@ class VideoDir:
 			ta = a.formatSortText(self.opts['sortopt'])
 			tb = b.formatSortText(self.opts['sortopt'])
 			if (self.opts['sortup']):
-				return cmp(ta, tb)
+				return cmpList(ta, tb)
 			else:
-				return cmp(tb, ta)
+				return cmpList(tb, ta)
 		
 		s = sorted(self.videoList, cmpNodes)
 		self.videoList = s

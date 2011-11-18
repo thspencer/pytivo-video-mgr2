@@ -7,6 +7,7 @@ Created on Aug 4, 2011
 from Node import Node, OTHER
 from Config import ConfigError
 from InfoView import metaTranslate
+from VideoFile import stripArticle
 
 AlphaKeys = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -114,7 +115,12 @@ class AlphaHarvester(Harvester):
 		if type(mvf[k]) is list:
 			raise ConfigError("Configuration Error - tag for alpha cannot be a list")
 		
-		keychar = mvf[k][0].upper()
+		if k in [ 'title', 'episodeTitle' ] and self.opts['ignorearticle']:
+			data = stripArticle(mvf[k])
+		else:
+			data = mvf[k]
+			
+		keychar = data[0].upper()
 		if keychar not in AlphaKeys:
 			keychar = OTHER
 			

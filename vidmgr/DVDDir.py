@@ -6,6 +6,7 @@ Created on Aug 3, 2011
 
 import os
 from Config import TYPE_DVDDIR
+from Node import cmpList
 
 class DVDDir:
 	def __init__(self, opts, name, rpath, apath, share):
@@ -82,9 +83,9 @@ class DVDDir:
 			ta = a.formatSortText(self.opts['dispopt'])
 			tb = b.formatSortText(self.opts['dispopt'])
 			if (self.opts['sortup']):
-				return cmp(ta, tb)
+				return cmpList(ta, tb)
 			else:
-				return cmp(tb, ta)
+				return cmpList(tb, ta)
 		
 		s = sorted(self.videoList, cmpNodes)
 		self.videoList = s

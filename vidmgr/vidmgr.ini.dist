@@ -2,39 +2,33 @@
 #
 # this is the global options file - it belongs in the vidmgr directory under pyhme
 #
-# Default values are specified below
+# Default values are specified below.  
 #
 [vidmgr]
 # what file extensions are we interested in.  Only files with these extensions will be
 # displayed on screen
 # specify a list of file extensions - with the .  
-#      default: exts=.mp4 .mpg .avi .wmv
-#
-# exts=
+
+exts=.mp4 .mpg .avi .wmv
 
 # the next 4 options specify format information for the info screen that pops up
 # when you press the info button. 
 # specify a list of metadata tags for each.
-#       default: metaignore=isEpisode isEpisodic
-#                metafirst=title seriesTitle episodeTitle description
-#                metaspacebefore=
-#                metaspaceafter=
-#
-# metaignore=
-# metafirst=
-# metaspacebefore=
-# metaspaceafter=
+
+metaignore=isEpisode isEpisodic __fileName __filePath
+metafirst=title seriesTitle episodeTitle description
+metaspacebefore=
+metaspaceafter=
 
 # the next two options are also formatting options for the info screen.  The info screen is 
 # a two column layout.  the infolabelpercent option indicates what percentage of the
 # screen width should be devoted to the label column
-#      default: infolabelpercent=30
+#
 # the inforightmargin option specifies the width of the right margin on the info screen.  If
 # you find the text running up against the right edge of the screen, increase this number.
-#      default: inforightmargin=20
-#
-# infolabelpercent=
-# inforightmargin=
+
+infolabelpercent=30
+inforightmargin=20
 
 # the next two options control how multiple metadata files are handled.  When searching for
 # metadata, vidmgr looks for the files in the following sequence:
@@ -48,22 +42,19 @@
 # from the general to the specific, more specific information will replace more general information,
 # but the end result will be the union of all the files.  If this is set to false, then only the
 # information in the last file read will be kept.
-#      default: metamergefiles=True
 #
 # metamergelines if only meaningful if metamergefiles is set to true.  If set to true, then if
 # two files contain the same metadata tag, then the values are concatenated together.  If set to 
 # false, then the value from the second file replaces the value from the first file.  Note - 
 # metadata tags that are already lists (vActor, etc) are always merged regardless of the value of
 # this option.
-#      default: metamergelines=False
-#
-# metamergefiles=
-# metamergelines=
+
+metamergefiles=True
+metamergelines=False
 
 # specify the point size of the font used to display the descriptive text of a video on the main screen
-#      default: descsize=20
-#
-# descsize=
+
+descsize=20
 
 #
 # the image files that vidmgr uses for its background, etc, can be replaced.  These files all reside
@@ -72,67 +63,72 @@
 # Note: the files must be png files and must match the original images in size.  Only the images being
 # changed need be specified.  If an image file is NOT found in your skin's directory, the corresponding
 # file is taken from the main skins directory.
-#      default: skin=
+# 
+# There is no default for this.  Do Not include this option unless you are using your own skin
 #
 # skin=
 
 # 
 # can the files in this directory be deleted - specify true or false.  
 #
-#      default: deleteallowed=True
-#
-# deleteallowed=
+
+deleteallowed=True
 
 #
 # specify how you would like the artwork for a video to be justified - specify left, center, or right
 #
-#      default: thumbjustify=left
-#
-# thumbjustify=
+
+thumbjustify=left
 
 #
 # what metadata tags should be used to construct the string used to identify this file on the screen
 # specify a list of metadata tags - including any metadata tags you may have created yourself.  In addition to the
 # normal metadata tags, you can use the word 'file' to indicate the video's file name (without the directory) and 
 # you can use the value 'titleNumber' to indicate the title number for a DVD video.
-#      default: display=title episodeTitle
 #
-# display=
 
+display=title episodeTitle
+
+#
 # what string should be used to separate the above metadata when constructing the title string
 # specify an arbitrary string
-#      default: displaysep=:
 #
-# displaysep=
+
+displaysep=:
 
 #
 # what metadata tags should be used to construct the string that is used to sort the videos when they
-# are displayed in a list
-# specify a list of metadata tags - including any metadata tags you may have created yourself.  In addition to the
-# normal metadata tags, you can use the word 'file' to indicate the video's file name (without the directory) and 
-# you can use the value 'titleNumber' to indicate the title number for a DVD video.
-#      default: sort=title episodeTitle
+# are displayed in a list specify a list of metadata tags - including any metadata tags you may have created yourself.  In addition to the
+# normal metadata tags, you can use the word '__fileName' (or 'file') to indicate the video's file name (without the directory),
+# '__filePath' to indicate the video's full directory path, or the value 'titleNumber' to indicate the title number for a DVD video.
 #
-# sort=
+
+sort=title episodeTitle
 
 #
 # which direction should the sort be
 # specify up for an ascending sort or down for a descending sort
-#      default: dortdirection=up
 #
-# sortdirection=
+
+sortdirection=up
 
 # 
-# the next options control the contents of the top of the navigation tree.  If sharepage isset to true, the top page will
+# should a leading article (the, a, an) in a 'title' or 'episodeTitle' be ignored when sorting on that title.  Note that the displayed
+# title will not change i.e. "The Abyss" will still show up as "The Abyss", but it will be sorted in with the A titles.
+#
+
+ignorearticle=True
+
+# 
+# the next options control the contents of the top of the navigation tree.  If sharepage is set to true, the top page will
 # contain an entry that says 'Browse Shares'.  This will take you to a separate page where the shares are listed.
 # If it is set to false, then each share will be on the top screen.
 # if sortroot is true, the virtual shares and the actual shares will be sorted together.  If it is false (the default)
 # then the actual shares will appear above the virtual shares.  Both will be sorted, but one will appear before the other
-#      default: sharepage=true
-#               sortroot=false
 #
-# sharepage=
-# sortroot=
+
+sharepage=true
+sortroot=false
 
 #
 # what text string should be used for the subtitle on the top navigation screen.  The subtitle normally gives
@@ -148,9 +144,8 @@
 # the cache.  If you are not using links in your video directories, you can essentially disable this logic by
 # setting the following option to false.  The default is true
 #
-# usefileid=
 
-
+usefileid=True
 
 
 #
@@ -190,7 +185,7 @@
 # have a specification for which files to include.  Additionally, you can override sort and display options, and you
 # can specify how files should be grouped
 #
-# [virtual share name X]
+[virtual share name X]
 
 #
 # there are four possible ways to indicate which files to include.  You must use exactly 1 of them for each virtual share:
@@ -217,7 +212,7 @@
 # multiple tags are specified, a video will match only if 1) it contains ALL of the tags, and 2) each value for EVERY tag
 # is in the specified list.  Spaces are significant for the values.  Do not use any unnecessary spaces in the specification.
 # As an example, values=isEpisodic:true,True,TRUE  will include ALL videos for which the value for isEpisodic is true, True, 
-# or TRUE.  As with tags, the metadata tags can be any of the normal tags, inclding your own, or titleNumber which is the
+# or TRUE.  As with tags, the metadata tags can be any of the normal tags, including your own, or titleNumber which is the
 # title number for DVD videos.
 #
 #
@@ -227,7 +222,8 @@
 #
 # for example, specifying alpha=Title will organize all videos into title order, but it will produce a separate "folder"
 # for each occurring letter or digit.  Titles that do not have a leading letter or digit are placed into an "<Other>" folder.
-# Only letters and digits that have at least one video will be presented.
+# Only letters and digits that have at least one video will be presented.  The ignorearticle option affects Alpha shares
+# if the tag is either 'title' or 'episodeTitle'
 #
 #
 # 4. include ALL videos unconditionally:

@@ -72,7 +72,7 @@ class Config:
 	def load(self):
 		opts = {
 				'goodexts' : ['.mp4', '.mpg', '.avi', '.wmv'],
-				'metaignore' : ['isEpisode', 'isEpisodic'],
+				'metaignore' : ['isEpisode', 'isEpisodic', '__fileName', '__filePath'],
 				'metafirst' : ['title', 'seriesTitle', 'episodeTitle', 'description' ],
 				'metaspacebefore' : [],
 				'metaspaceafter' : [],
@@ -88,6 +88,7 @@ class Config:
 				'dispsep' : ":",
 				'sortopt' : ['title', 'episodeTitle'],
 				'sortup' : True,
+				'ignorearticle' : True,
 				'group' : None,
 				'usefileid' : True
 				}
@@ -170,6 +171,10 @@ class Config:
 					else:
 						raise ConfigError("Config error - sortdirection must be up or down")
 	
+				elif opt == 'ignorearticle':
+					if lval == "false":
+						opts['ignorearticle'] = False
+						
 				elif opt == 'usefileid':
 					if lval == "false":
 						opts['usefileid'] = False

@@ -33,6 +33,8 @@ metaXlate = { 'title': 'Title',
 			'vDirector': 'Director',
 			'vActor': 'Actor',
 			'vWriter': 'Writer',
+			'__fileName': 'File Name',
+			'__filePath': 'File Path',
 			}
 
 infoLabelPercent = 30

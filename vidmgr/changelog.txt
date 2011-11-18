@@ -18,4 +18,12 @@ Version 2.0f - 11/16/2011
 - minor changes to the subtitle when grouping is being used
 - fixed bug reported by bwall23 where port number was not successfully retrieved from pytivo config file
 
-
+Version 2.0g - 11/17/2011
+- added __fileName and __filePath as automatic metadata items.  These are also in the default ignore list so 
+they don't show up in the info view.  If you want to see them, you need to redefine metaignore (in vidmgr.ini)
+to NOT include these names
+- Fixed the sorting logic that caused titles like "Alien" to sort AFTER "Alien 3"
+- added new vidmgr.ini option - ignorearticle - that will ignore an article (the, a, or an) at the beginning of a title.
+Thus, "The Abyss" will sort with the A's instead of the T's.  The default value of this is True so this new behavior
+will occur unless you change it to False.  This also affects alpha virtual shares: The Abyss will be included with the 
+A's and not with the T's 

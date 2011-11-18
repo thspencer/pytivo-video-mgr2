@@ -6,6 +6,21 @@ Created on Aug 6, 2011
 
 from Config import TYPE_NODE
 
+SORTSEP = '(#)'
+
+def cmpList(a, b):
+	at = a.split(SORTSEP)
+	bt = b.split(SORTSEP)
+	n = len(at)
+	if n != len(bt):
+		return cmp(a, b)
+	
+	for i in range(n):
+		if at[i] != bt[i]:
+			return cmp(at[i], bt[i])
+		
+	return 0
+
 OTHER = "<other>"
 
 class Node:
@@ -93,9 +108,9 @@ class Node:
 				return -1
 			
 			if (self.opts['sortup']):
-				return cmp(ta, tb)
+				return cmpList(ta, tb)
 			else:
-				return cmp(tb, ta)
+				return cmpList(tb, ta)
 
 		s = sorted(self.videoList, cmpNodes)
 		self.videoList = s

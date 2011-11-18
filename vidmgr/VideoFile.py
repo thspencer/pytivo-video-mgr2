@@ -5,6 +5,18 @@ import os
 
 from DVDDir import DVDDir
 from Config import TYPE_VIDFILE, TYPE_DVDDIR
+from Node import SORTSEP
+
+def stripArticle(string):
+	lstring = string.lower()
+	result = string
+	
+	for article in [ 'the ', 'an ', 'a ']:
+		if lstring.startswith(article):
+			result = string[len(article):].lstrip()
+			break
+		
+	return result
 
 class VideoFile:
 	def __init__(self, opts, dir, fn, fid):
@@ -110,6 +122,8 @@ class VideoFile:
 	
 	def setMeta(self, meta):
 		self.meta = meta
+		self.meta['__fileName'] = self.getFileName()
+		self.meta['__filePath'] = self.getPath()
 		self.formatDisplayText(self.opts['dispopt'])
 		
 	def formatDisplayText(self, fmt):
@@ -144,21 +158,20 @@ class VideoFile:
 		result = ""
 		terms = 0
 		for f in fmt:
+			if result != "":
+				result += SORTSEP
 			if f in self.meta:
 				data = self.meta[f]
 				if type(data) is list:
 					result += ','.join(data)
 				else:
+					if f in [ 'title', 'episodeTitle' ] and self.opts['ignorearticle']:
+						data = stripArticle(self.meta[f])
 					result += data
 				terms += 1
 			elif f == 'file':
 				result = result + self.getFileName()
 				terms += 1
-				
-			result += ":"
-			
-		if len(result) > 0:
-			result = result[:-1]
 			
 		if terms == 0:
 			result = self.getFileName()
