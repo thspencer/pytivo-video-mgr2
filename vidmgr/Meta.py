@@ -169,7 +169,7 @@ class AlphaHarvester(Harvester):
 		
 class KeyValHarvester(Harvester):
 	def __init__(self, name, opts, metakeydict):
-		Harvester.__init__(name, opts)
+		Harvester.__init__(self, name, opts)
 		self.metakeydict = metakeydict.copy()
 			
 	def harvest(self, vf):

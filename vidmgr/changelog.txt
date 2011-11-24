@@ -27,3 +27,6 @@ to NOT include these names
 Thus, "The Abyss" will sort with the A's instead of the T's.  The default value of this is True so this new behavior
 will occur unless you change it to False.  This also affects alpha virtual shares: The Abyss will be included with the 
 A's and not with the T's 
+
+Version 2.0H - 11/23/2011
+- corrected error in object constructor routine - reported on TCF by Lrhorer
