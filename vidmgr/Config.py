@@ -84,6 +84,7 @@ class Config:
 				'skin' : None,
 				'deleteallowed' : True,
 				'thumbjustify' : RSRC_HALIGN_LEFT,
+				'thumbfolderfn' : 'folder.jpg',
 				'dispopt' : ['title', 'episodeTitle'],
 				'dispsep' : ":",
 				'sortopt' : ['title', 'episodeTitle'],
@@ -154,6 +155,9 @@ class Config:
 					else:
 						raise ConfigError("Config error - invalid value for thumbjustify (left, center, right)")
 	
+				elif opt == 'thumbfolderfn':
+					opts['thumbfolderfn'] = value
+
 				elif opt == 'display':
 					opts['dispopt'] = value.split()
 	

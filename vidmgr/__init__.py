@@ -24,7 +24,7 @@ from Push import Push
 from MessageBox import MessageBox
 
 TITLE = 'PyTivo Video Manager'
-VERSION = '2.0h'
+VERSION = '2.0i'
 
 print asctime(), TITLE + " version " + VERSION + " module initializing"
 

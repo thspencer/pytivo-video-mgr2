@@ -77,8 +77,8 @@ class DetailDisplayManager:
 		names = []
 		names.append(os.path.join(dir, name + '.jpg'))
 		names.append(os.path.join(dir, '.meta', name + '.jpg'))
-		names.append(os.path.join(dir, 'folder.jpg'))
-		names.append(os.path.join(dir, '.meta', 'folder.jpg'))
+		names.append(os.path.join(dir, self.opts['thumbfolderfn']))
+		names.append(os.path.join(dir, '.meta', self.opts['thumbfolderfn']))
 		if isDVD: 
 			names.append(os.path.join(dir, 'default.jpg'))
 			names.append(os.path.join(dir, '.meta', 'default.jpg'))
@@ -94,8 +94,8 @@ class DetailDisplayManager:
 	def getDirThumb(self, dir, isDVD):
 		thumb = None
 		names = []
-		names.append(os.path.join(dir, 'folder.jpg'))
-		names.append(os.path.join(dir, '.meta', 'folder.jpg'))
+		names.append(os.path.join(dir, self.opts['thumbfolderfn']))
+		names.append(os.path.join(dir, '.meta', self.opts['thumbfolderfn']))
 		if isDVD: 
 			names.append(os.path.join(dir, 'default.jpg'))
 			names.append(os.path.join(dir, '.meta', 'default.jpg'))

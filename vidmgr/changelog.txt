@@ -28,5 +28,8 @@ Thus, "The Abyss" will sort with the A's instead of the T's.  The default value 
 will occur unless you change it to False.  This also affects alpha virtual shares: The Abyss will be included with the 
 A's and not with the T's 
 
-Version 2.0H - 11/23/2011
+Version 2.0h - 11/23/2011
 - corrected error in object constructor routine - reported on TCF by Lrhorer
+
+Version 2.0i - 11/29/2011
+- added thumbfolderfn to ini file with a default value of 'folder.jpg' - allows you to change the name of the folder file

@@ -3,33 +3,53 @@
 # this is the global options file - it belongs in the vidmgr directory under pyhme
 #
 # Default values are specified below.  
+
 #
+# NOTE:
+#
+# These default values do NOT need to be explicitly stated in this file.  They are here for illustration
+# you can leave them in here if you want, or you can remove them and only include in here the options you
+# are changing
+#
+
+#
+# vidmgr section is mandatory
+#
+
 [vidmgr]
+
+#
 # what file extensions are we interested in.  Only files with these extensions will be
 # displayed on screen
-# specify a list of file extensions - with the .  
+# specify a list of file extensions - with the .  - separated by at least one space
+#
 
 exts=.mp4 .mpg .avi .wmv
 
+#
 # the next 4 options specify format information for the info screen that pops up
 # when you press the info button. 
 # specify a list of metadata tags for each.
+#
 
 metaignore=isEpisode isEpisodic __fileName __filePath
 metafirst=title seriesTitle episodeTitle description
 metaspacebefore=
 metaspaceafter=
 
+#
 # the next two options are also formatting options for the info screen.  The info screen is 
 # a two column layout.  the infolabelpercent option indicates what percentage of the
 # screen width should be devoted to the label column
 #
 # the inforightmargin option specifies the width of the right margin on the info screen.  If
 # you find the text running up against the right edge of the screen, increase this number.
+#
 
 infolabelpercent=30
 inforightmargin=20
 
+#
 # the next two options control how multiple metadata files are handled.  When searching for
 # metadata, vidmgr looks for the files in the following sequence:
 #      .meta/default.txt
@@ -48,11 +68,14 @@ inforightmargin=20
 # false, then the value from the second file replaces the value from the first file.  Note - 
 # metadata tags that are already lists (vActor, etc) are always merged regardless of the value of
 # this option.
+#
 
 metamergefiles=True
 metamergelines=False
 
+#
 # specify the point size of the font used to display the descriptive text of a video on the main screen
+#
 
 descsize=20
 
@@ -79,6 +102,12 @@ deleteallowed=True
 #
 
 thumbjustify=left
+
+#
+# specify the name of the file to use for the folder and for the video file if a video specific file is not found
+#
+
+thumbfolderfn=folder.jpg
 
 #
 # what metadata tags should be used to construct the string used to identify this file on the screen
@@ -155,6 +184,7 @@ usefileid=True
 # an arbitrary number of tivos, but vidmgr will stop parsing the file as soon as it detects a gap in the
 # numbering sequence.  These fields have no default values.
 #
+
 [tivos]
 # tivoX.name=
 # tivoX.tsn=
@@ -170,6 +200,7 @@ usefileid=True
 # pytivoX.sep is the file path separator for the machine on which pytivo is running - if this is omitted, then
 # the seperator character for the machine on which vidmgr is used.
 #
+
 [pytivos]
 # pytivoX.config=
 # pytivoX.sep=
