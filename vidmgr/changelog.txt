@@ -34,7 +34,7 @@ Version 2.0h - 11/23/2011
 Version 2.0i - 11/29/2011
 - added thumbfolderfn to ini file with a default value of 'folder.jpg' - allows you to change the name of the folder file
 
-Version 2.1 - 2/6/2012
+Version 2.1 - 2/4/2012
 - fixed major bug found by cweb.  There were actually 2 bugs.
     1) The cache was being built incorrectly - references by virtual shares were not being properly accounted for.  This problem
     would actually solve itself if the cache was written to disk and then read back, but if the cache was built dynamically, 
