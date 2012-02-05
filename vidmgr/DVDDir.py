@@ -50,9 +50,9 @@ class DVDDir:
 	def getMeta(self):
 		return self.meta
 		
-	def addVideo(self, v):
+	def addVideo(self, v, path=None, fn=None):
 		self.videoList.append(v)	
-		v.addVideoRef(self)
+		v.addVideoRef(self, path, fn)
 				
 	def setVideoList(self, vl):
 		self.videoList = [n for n in vl]

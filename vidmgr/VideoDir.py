@@ -56,9 +56,9 @@ class VideoDir:
 	def getOpts(self):
 		return self.opts
 		
-	def addVideo(self, v):
+	def addVideo(self, v, path=None, fn=None):
 		self.videoList.append(v)	
-		v.addVideoRef(self)
+		v.addVideoRef(self, path, fn)
 				
 	def delVideo(self, vf):
 		for i in range(len(self.videoList)):

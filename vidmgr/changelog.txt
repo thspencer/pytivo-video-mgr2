@@ -33,3 +33,14 @@ Version 2.0h - 11/23/2011
 
 Version 2.0i - 11/29/2011
 - added thumbfolderfn to ini file with a default value of 'folder.jpg' - allows you to change the name of the folder file
+
+Version 2.1 - 2/6/2012
+- fixed major bug found by cweb.  There were actually 2 bugs.
+    1) The cache was being built incorrectly - references by virtual shares were not being properly accounted for.  This problem
+    would actually solve itself if the cache was written to disk and then read back, but if the cache was built dynamically, 
+    this "correction" did not happen.  As a result, files could be deleted even though there were multiple references, which
+    brings us to the second bug:
+    2) The logic to see if a file was deletable was wrong.  I was attempting to prevent deletion of a file that had multiple
+    links (logical or physical) just to keep things simple for myself.  Instead I prevented deletion if there were multiple references.
+    Since virtual shares create additional references to the same file, this virtually precluded deleting most files.  The logic was
+    fixed to be based on whether or not there are multiple file system links.

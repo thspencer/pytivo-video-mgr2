@@ -26,6 +26,7 @@ class VideoFile:
 		self.fileID = fid
 		self.path = dir
 		self.vRef = []
+		self.multiLinks = False
 		self.meta = {}
 		self.metaRef = []
 		self.index = None
@@ -48,8 +49,12 @@ class VideoFile:
 	def getOpts(self):
 		return self.opts
 
-	def addVideoRef(self, dir):
-		self.vRef.append(dir)
+	def addVideoRef(self, dn, path, fn):
+		if path != None and fn != None:
+			if path != self.path or fn != self.filename:
+				self.multiLinks = True
+				
+		self.vRef.append(dn)
 		
 	def getFileID(self):
 		return self.fileID
@@ -65,9 +70,9 @@ class VideoFile:
 			return False
 
 		# prevent deletes if more that one link to this file
-		if len(self.vRef) > 1:
+		if self.multiLinks:
 			return False
-		
+
 		return self.opts['deleteallowed']
 	
 	def isDVDVideo(self):
@@ -116,7 +121,9 @@ class VideoFile:
 			return l
 		
 		for v in self.vRef:
-			l.append(v.getShare())
+			sh = v.getShare()
+			if sh:
+				l.append(sh)
 		
 		return l;
 	

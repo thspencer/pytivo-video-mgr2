@@ -82,7 +82,7 @@ class VideoList:
 	def __init__(self):
 		self.list = []
 
-	def addVideo(self, vf):
+	def addVideo(self, vf, path=None, fn=None):
 		self.list.append(vf)
 			
 	def findVideo(self, fid):

@@ -63,7 +63,10 @@ class Node:
 	def getName(self):
 		return self.name
 	
-	def addVideo(self, vf):
+	def getShare(self):
+		return None
+	
+	def addVideo(self, vf, path=None, fn=None):
 		vfid = vf.getFileID()
 		for v in self.videoList:
 			if v.getFileID() == vfid:
@@ -71,6 +74,7 @@ class Node:
 				return
 			
 		self.videoList.append(vf)
+		vf.addVideoRef(self, path, fn)
 		
 	def delVideo(self, vf):
 		vfid = vf.getFileID()

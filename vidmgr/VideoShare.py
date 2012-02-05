@@ -72,7 +72,7 @@ class VideoShare:
 							h.harvest(vf)
 
 					else:
-						vl.addVideo(vf)
+						vl.addVideo(vf, path=path, fn=name)
 						self.count += 1
 						
 			vl.sort()

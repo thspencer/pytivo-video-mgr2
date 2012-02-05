@@ -39,17 +39,17 @@ class DVDShare:
 				p, deftitle = os.path.split(path)
 				meta, titles = self.loadDvdMeta(path, lopts, "default", deftitle, False)
 				fid = fileId(os.path.join(path, "default.txt"))
-				for (title, file, tn) in titles:
+				for (title, fn, tn) in titles:
 					if fid != None:		
 						vf = vidlist.findVideo((fid, tn))
 					else:
 						vf = None
 						
 					if vf == None:
-						vf = VideoFile(lopts, path, file, (fid, tn))
+						vf = VideoFile(lopts, path, fn, (fid, tn))
 						vidlist.addVideo(vf)
 
-						meta, t = self.loadDvdMeta(path, lopts, file, title, True)
+						meta, t = self.loadDvdMeta(path, lopts, fn, title, True)
 						meta['title'] = title
 						meta['titleNumber'] = tn
 						vf.setMeta(meta)
@@ -61,33 +61,33 @@ class DVDShare:
 							h.harvest(vf)
 
 					else:
-						vdir.addVideo(vf)
+						vdir.addVideo(vf, path=path, fn=fn)
 						self.count += 1
 			else:
-				for dir in dirs:
-					if dir.startswith("."): continue
+				for dn in dirs:
+					if dn.startswith("."): continue
 
-					cdir = os.path.join(path, dir)
+					cdir = os.path.join(path, dn)
 					if self.isDvdDir(cdir):
 						meta, tnames = self.loadDvdMeta(cdir,
 							lopts,
 							"default",
-							dir,
+							dn,
 							False)
 					
-						d = DVDDir(lopts, dir, rpath, path, self.name)
+						d = DVDDir(lopts, dn, rpath, path, self.name)
 					else:
 						meta = metadata.from_text(
-							os.path.join(path, dir, "folder"),
+							os.path.join(path, dn, "folder"),
 							lopts['metamergefiles'],
 							lopts['metamergelines'])
 
-						d = VideoDir(lopts, dir, rpath, path, self.name)
+						d = VideoDir(lopts, dn, rpath, path, self.name)
 						
 					d.setMeta(meta)
 					vdir.addDir(d)
-					sharedirs[os.path.join(rpath, dir)] = d
-					shareopts[os.path.join(rpath, dir)] = lopts.copy()
+					sharedirs[os.path.join(rpath, dn)] = d
+					shareopts[os.path.join(rpath, dn)] = lopts.copy()
 			vdir.sort()
 		
 	def getObjType(self):
