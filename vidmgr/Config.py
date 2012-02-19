@@ -89,6 +89,7 @@ class Config:
 				'dispsep' : ":",
 				'sortopt' : ['title', 'episodeTitle'],
 				'sortup' : True,
+				'tagssortup' : True,
 				'ignorearticle' : True,
 				'group' : None,
 				'usefileid' : True

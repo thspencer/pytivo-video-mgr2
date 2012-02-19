@@ -279,6 +279,14 @@ usefileid=True
 # groupby=
 
 #
+# you can specify a different sort order for the tags you are organizing by as opposed to the video titles themselves.  The videos
+# are governed by the sortdirection and sort parameters, but the sort order of the tags is determined by the tagorder parameter, set
+# to either up (default) or down.  This allows, for example, for the movies to be organized by year with the newest first, but within 
+# a single year the titles would be in normal alphabetical order.
+#
+# tagorder=up
+
+#
 # it is possible to limit the selection of videos for a virtual share to a list of physical shares by using the
 # shares= statement.  If omotted, ALL shares are considered as a source for videos
 #

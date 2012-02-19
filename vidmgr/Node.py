@@ -103,7 +103,7 @@ class Node:
 		return {}
 	
 	def sort(self):
-		def cmpNodes(a, b):
+		def cmpVidNodes(a, b):
 			ta = a.formatSortText(self.opts['sortopt'])
 			if ta == OTHER:
 				return 1
@@ -115,10 +115,22 @@ class Node:
 				return cmpList(ta, tb)
 			else:
 				return cmpList(tb, ta)
+		def cmpDirNodes(a, b):
+			ta = a.formatSortText(self.opts['sortopt'])
+			if ta == OTHER:
+				return 1
+			tb = b.formatSortText(self.opts['sortopt'])
+			if tb == OTHER:
+				return -1
+			
+			if (self.opts['tagssortup']):
+				return cmpList(ta, tb)
+			else:
+				return cmpList(tb, ta)
 
-		s = sorted(self.videoList, cmpNodes)
+		s = sorted(self.videoList, cmpVidNodes)
 		self.videoList = s
-		s = sorted(self.dirList, cmpNodes)
+		s = sorted(self.dirList, cmpDirNodes)
 		self.dirList = s
 
 	def __len__(self):

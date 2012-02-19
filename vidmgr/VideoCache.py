@@ -228,6 +228,17 @@ class VideoCache:
 						lopts['sortup'] = True
 					else:
 						raise ConfigError("Error in ini file - sortdirection must be up or down")
+					
+				if self.cfg.has_option(section, 'tagorder'):
+					lval = self.cfg.get(section, 'tagorder').lower()
+					if lval == 'down':
+						lopts['tagssortup'] = False
+					elif lval == 'up':
+						lopts['tagssortup'] = True
+					else:
+						raise ConfigError("Error in ini file - tagorder must be up or down")
+				else:
+					lopts['tagssortup'] = True
 						
 				if self.cfg.has_option(section, 'display)'):
 					lopts['dispopt'] = self.cfg.get(section, 'display').split()

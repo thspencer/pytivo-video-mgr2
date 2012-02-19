@@ -44,3 +44,6 @@ Version 2.1 - 2/4/2012
     links (logical or physical) just to keep things simple for myself.  Instead I prevented deletion if there were multiple references.
     Since virtual shares create additional references to the same file, this virtually precluded deleting most files.  The logic was
     fixed to be based on whether or not there are multiple file system links.
+    
+Version 2.1a - 1/19/2012
+- added tagorder configuration parameter to specify a separate sort order for virtual share tags as opposed to videos
