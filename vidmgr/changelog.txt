@@ -47,3 +47,6 @@ Version 2.1 - 2/4/2012
     
 Version 2.1a - 1/19/2012
 - added tagorder configuration parameter to specify a separate sort order for virtual share tags as opposed to videos
+
+Version 2.1b - 4/23/2012
+- fixed a bug reported by Larrs - when selecting a tivo from a list with more that 1 page's worth, pagination was not handled correctly

@@ -30,9 +30,9 @@ class SubMenu(View):
 
 		self.vwTitle = View(self.app, parent=self, width=submenuwidth-20, height=submenulineheight, xpos=20, ypos=2)
 
-		self.vwUp = View(self.app, parent=self, width=32, height=16, xpos=44, ypos=36)
+		self.vwUp = View(self.app, parent=self, width=32, height=16, xpos=30, ypos=36)
 		self.vwUp.set_resource(self.app.myimages.InfoUp)
-		self.vwDown = View(self.app, parent=self, width=32, height=16, xpos=44, ypos=submenuheight-18)
+		self.vwDown = View(self.app, parent=self, width=32, height=16, xpos=30, ypos=submenuheight-18)
 		self.vwDown.set_resource(self.app.myimages.InfoDown)
 
 
@@ -153,16 +153,26 @@ class SubMenu(View):
 		self.displayOffset = self.displayOffset + self.linesPerPage
 		if self.displayOffset + self.linesPerPage > self.lineCount:
 			self.displayOffset = self.lineCount - self.linesPerPage
+			
+		self.currentChoice = self.currentChoice + self.linesPerPage
+		if self.currentChoice >= self.lineCount:
+			self.currentChoice = self.lineCount - 1
+			
 		self.paint()
 		return True
 	
 	def pageup(self):
-		if self.displayOffset == 0:
+		if self.displayOffset == 0 and self.currentChoice == 0:
 			return False;
 		
 		self.displayOffset = self.displayOffset - self.linesPerPage
 		if self.displayOffset < 0:
 			self.displayOffset = 0
+			
+		self.currentChoice = self.currentChoice - self.linesPerPage
+		if self.currentChoice < 0:
+			self.currentChoice = 0
+			
 		self.paint()
 		return True
 		
