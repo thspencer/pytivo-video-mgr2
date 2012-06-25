@@ -50,3 +50,6 @@ Version 2.1a - 1/19/2012
 
 Version 2.1b - 4/23/2012
 - fixed a bug reported by Larrs - when selecting a tivo from a list with more that 1 page's worth, pagination was not handled correctly
+
+6/24/2012 - without renumbering release - I added the -v option to BuildCache.py to receive additional information about the cache
+build process to help debug metadata issues - as requested by lrhorer.

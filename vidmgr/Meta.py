@@ -62,8 +62,9 @@ class Harvester:
 		return True
 
 class AllHarvester(Harvester):	
-	def __init__(self, name, opts):
+	def __init__(self, name, opts, verbose=False):
 		Harvester.__init__(self, name, opts)
+		self.verbose=verbose
 		
 	def harvest(self, vf):	
 		if not Harvester.harvest(self, vf):
@@ -99,9 +100,10 @@ class AllHarvester(Harvester):
 		self.count += 1
 
 class AlphaHarvester(Harvester):
-	def __init__(self, name, opts, metakey):
+	def __init__(self, name, opts, metakey, verbose=False):
 		Harvester.__init__(self, name, opts)
 		self.metakey = metakey
+		self.verbose = verbose
 
 	def harvest(self, vf):	
 		if not Harvester.harvest(self, vf):
@@ -168,9 +170,10 @@ class AlphaHarvester(Harvester):
 		self.count += 1
 		
 class KeyValHarvester(Harvester):
-	def __init__(self, name, opts, metakeydict):
+	def __init__(self, name, opts, metakeydict, verbose=False):
 		Harvester.__init__(self, name, opts)
 		self.metakeydict = metakeydict.copy()
+		self.verbose = verbose
 			
 	def harvest(self, vf):
 		if not Harvester.harvest(self, vf):
@@ -238,9 +241,10 @@ class KeyValHarvester(Harvester):
 		self.count += 1
 		
 class KeySetHarvester(Harvester):
-	def __init__(self, name, opts, metakeys):
+	def __init__(self, name, opts, metakeys, verbose=False):
 		Harvester.__init__(self, name, opts)
 		self.metakeys = [k for k in metakeys]
+		self.verbose = verbose
 
 	def harvest(self, vf):
 		if not Harvester.harvest(self, vf):
@@ -252,9 +256,11 @@ class KeySetHarvester(Harvester):
 		addlist = []
 		
 		# now scan through our list of keys
+		mkmatch = 0
 		for mk in self.metakeys:	
 			# check if the video even has this key	
 			if mk in mvf:
+				mkmatch += 1
 				# it does - get the values and build up our worklist
 				if type(mvf[mk]) is list:
 					for mv in mvf[mk]:
@@ -264,6 +270,9 @@ class KeySetHarvester(Harvester):
 					mv = mvf[mk]
 					if mv not in addlist:
 						addlist.append(mv)
+						
+		if mkmatch == 0 and self.verbose:
+			print "%s does not have any of meta tag(s) %s" % (vf.getFullPath(), str(self.metakeys))
 					
 		# now go through the worklist and build the structure as we go
 		tally = False

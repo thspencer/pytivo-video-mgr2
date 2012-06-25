@@ -158,7 +158,8 @@ When the application first receives control, it will attempt to open the cache. 
 to build it dynamically.  Depending on the size of your video library, this could take some time - so you may want to
 build it ahead of time.  To build the cache yourself, simply change into the vidmgr directory and run the following
 command: "python BuildCache.py".  If thereafter you want to go back to dynamically built caches, delete the file 
-"video.cache" from the same directory.
+"video.cache" from the same directory.  You can specify the -v (verbose) option on the command line to get a little
+additional information about the cache building process (i.e. "python BuildCache.py -v")
 
 If the cache is built dynamically, it is NEVER written back to disk.  This way, each time you start up, it will be rebuilt.
 

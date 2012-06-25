@@ -183,7 +183,7 @@ class VideoCache:
 				
 		return shares
 
-	def build(self):
+	def build(self, verbose=False):
 		def cmpHarvesters(a, b):
 			ta = a.formatDisplayText(None)
 			tb = b.formatDisplayText(None)
@@ -262,7 +262,7 @@ class VideoCache:
 					if hasValues or hasAlpha:
 						raise ConfigError("Error - tags, values, and alpha are mutually exclusive in section %s" % section)
 					
-					h = KeySetHarvester(section, lopts, self.cfg.get(section,'tags').split())
+					h = KeySetHarvester(section, lopts, self.cfg.get(section,'tags').split(), verbose)
 					harvesters.append(h)
 				
 				elif hasAlpha:
@@ -270,12 +270,12 @@ class VideoCache:
 						raise ConfigError("Error - tags, values, and alpha are mutually exclusive in section %s" % section)
 
 					mkey = self.cfg.get(section, 'alpha')
-					h = AlphaHarvester(section, lopts, mkey)
+					h = AlphaHarvester(section, lopts, mkey, verbose)
 					harvesters.append(h)
 
 				elif hasValues:
 					if self.cfg.get(section, 'values').lower() == 'all':
-						h = AllHarvester(section, lopts)
+						h = AllHarvester(section, lopts, verbose)
 						harvesters.append(h)
 					else:
 						terms = self.cfg.get(section, 'values').split('/')
@@ -289,7 +289,7 @@ class VideoCache:
 							vals = v[1].split(',')
 							vdict[tag] = vals
 							
-						h = KeyValHarvester(section, lopts, vdict)
+						h = KeyValHarvester(section, lopts, vdict, verbose)
 						harvesters.append(h)
 						
 				else: # section does not have the necessary virtual share tags
