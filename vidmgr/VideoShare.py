@@ -35,7 +35,8 @@ class VideoShare:
 			vl.setOpts(lopts)
 			
 			for name in dirs:
-				if name.startswith("."): continue
+				if (name.startswith(".") or
+                    name.startswith("@eaDir")): continue
 				meta = metadata.from_text(os.path.join(path, name, "folder"),
 							lopts['metamergefiles'],
 							lopts['metamergelines'])
